@@ -10,36 +10,32 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; margin-top: 10px; }
         .hidden { display: none !important; }
+        .logo-escola { width: 100px; height: auto; margin: 0 auto 15px auto; display: block; }
         h2, h3 { color: var(--primary); margin-bottom: 15px; }
         input, select, button { width: 100%; padding: 14px; margin-top: 8px; border-radius: 8px; border: 1.5px solid #ccd1d9; box-sizing: border-box; font-size: 16px; }
         .btn-main { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-main:disabled { background-color: #ccc; cursor: not-allowed; }
         .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); font-weight: bold; cursor: pointer; }
-        
-        /* Estilo do Modal (Janela de Esqueci Senha) */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
-        
-        /* Lista de Alunos */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
         .aluno-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #eee; text-align: left; }
-        .aluno-nome { flex: 1; font-size: 0.8rem; color: #444; text-transform: uppercase; font-weight: 500; }
+        .aluno-nome { flex: 1; font-size: 0.75rem; color: #444; text-transform: uppercase; font-weight: 500; padding-right: 5px; }
         .toggles { display: flex; gap: 4px; }
-        .t-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; background: #fff; }
-        
+        .t-btn { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; background: #fff; }
         .active-p { background: #2e7d32 !important; color: white !important; border-color: #1b5e20 !important; }
         .active-f { background: #c62828 !important; color: white !important; border-color: #b71c1c !important; }
         .active-j { background: #ef6c00 !important; color: white !important; border-color: #e65100 !important; }
-
         .header-app { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.8rem; background: #e0f2f1; padding: 10px; border-radius: 8px; align-items: center; }
-        .link-recuperar { display: block; margin-top: 15px; font-size: 0.85rem; color: var(--secondary); text-decoration: none; cursor: pointer; }
+        .link-recuperar { display: block; margin-top: 15px; font-size: 0.85rem; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <img src="imagem1.png" alt="Logo da Escola" class="logo-escola">
+
     <div id="tela-login">
         <h2>SISTEMA DE FREQUÊNCIA</h2>
-        <p style="margin-top:-10px; color: #666">EletIFAS</p>
+        <p style="margin-top:-10px; color: #666">Eletivas / IFAS</p>
         <input type="email" id="login-email" placeholder="E-mail">
         <input type="password" id="login-senha" placeholder="Senha">
         <button class="btn-main" onclick="acaoLogin()">ENTRAR</button>
@@ -50,10 +46,10 @@
 
     <div id="modal-recuperar" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3>Recuperar Acesso</h3>
-            <p style="font-size: 0.9rem; color: #666">Enviaremos um link para o seu e-mail para criar uma nova senha.</p>
-            <input type="email" id="email-recuperacao" placeholder="Digite seu e-mail cadastrado">
-            <button class="btn-main" onclick="enviarEmailRecuperacao()">ENVIAR LINK</button>
+            <h3>Recuperar Senha</h3>
+            <p style="font-size: 0.9rem; color: #666">Digite seu e-mail para receber o link.</p>
+            <input type="email" id="email-recuperacao" placeholder="E-mail cadastrado">
+            <button class="btn-main" onclick="enviarEmailRecuperacao()">ENVIAR E-MAIL</button>
             <button class="btn-outline" style="margin-top:10px" onclick="fecharModal()">CANCELAR</button>
         </div>
     </div>
@@ -70,16 +66,15 @@
     <div id="tela-index" class="hidden">
         <div class="header-app"><span id="info-prof">Professor</span><button onclick="location.reload()" style="width:auto; margin:0; padding:5px 10px; font-size:11px">Sair</button></div>
         <h2>O que deseja fazer?</h2>
-        <button class="btn-main" style="height: 120px; font-size: 1.2rem;" onclick="mostrarTela('tela-filtros')">📝 FAZER CHAMADA</button>
-        <button class="btn-outline" style="height: 120px; margin-top: 15px; font-size: 1.2rem;" onclick="alert('Módulo de Notas em breve')">📊 INSERIR NOTAS</button>
+        <button class="btn-main" style="height: 100px;" onclick="mostrarTela('tela-filtros')">📝 FAZER CHAMADA</button>
+        <button class="btn-outline" style="height: 100px; margin-top: 15px;" onclick="alert('Módulo de Notas em breve')">📊 INSERIR NOTAS</button>
     </div>
 
     <div id="tela-filtros" class="hidden">
         <h3>Configurar Aula</h3>
-        <label style="display:block; text-align:left; font-size:0.8rem; margin-left:5px">Data da Aula:</label>
         <input type="date" id="data-aula">
         <select id="area">
-            <option value="">Selecione a Área...</option>
+            <option value="">Área...</option>
             <option value="Linguagens">Linguagens</option>
             <option value="Matemática">Matemática</option>
             <option value="C. Natureza">Ciências da Natureza</option>
@@ -90,7 +85,7 @@
             <option value="integral">Integral</option>
             <option value="noturno">Noturno</option>
         </select>
-        <select id="turma"><option value="">Selecione a Turma...</option></select>
+        <select id="turma"><option value="">Turma...</option></select>
         <button class="btn-main" onclick="iniciarChamada()">CARREGAR LISTA</button>
         <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-index')">VOLTAR</button>
     </div>
@@ -112,52 +107,6 @@
     let professorAtivo = "";
     let chamadaAtual = [];
 
-    // --- FUNÇÕES DE NAVEGAÇÃO E MODAL ---
-    function mostrarTela(id) {
-        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-    }
-
-    function abrirModal() { document.getElementById('modal-recuperar').classList.remove('hidden'); }
-    function fecharModal() { document.getElementById('modal-recuperar').classList.add('hidden'); }
-
-    // --- LÓGICA DE AUTENTICAÇÃO ---
-    async function acaoLogin() {
-        const email = document.getElementById('login-email').value;
-        const senha = document.getElementById('login-senha').value;
-        if(!email || !senha) return alert("Preencha e-mail e senha.");
-        const { data, error } = await _supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) return alert("Erro no Login: " + error.message);
-        professorAtivo = data.user.user_metadata.full_name || email;
-        document.getElementById('info-prof').innerText = "Prof: " + professorAtivo;
-        mostrarTela('tela-index');
-    }
-
-    async function acaoCadastro() {
-        const email = document.getElementById('cad-email').value;
-        const senha = document.getElementById('cad-senha').value;
-        const nome = document.getElementById('cad-nome').value;
-        if(!email || !senha || !nome) return alert("Preencha todos os campos.");
-        const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
-        if (error) alert(error.message); else { alert("Cadastro realizado! Verifique seu e-mail."); mostrarTela('tela-login'); }
-    }
-
-    async function enviarEmailRecuperacao() {
-        const email = document.getElementById('email-recuperacao').value;
-        if (!email) return alert("Digite seu e-mail.");
-        
-        const linkRecuperacao = window.location.origin + "/recuperar.html";
-        const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: linkRecuperacao });
-        
-        if (error) {
-            alert("Erro: " + error.message);
-        } else {
-            alert("Sucesso! Verifique sua caixa de entrada para redefinir a senha.");
-            fecharModal();
-        }
-    }
-
-    // --- LÓGICA DAS TURMAS ---
     const dadosEscola = {
         integral: {
             "1º A": ["ANA BEATRIZ CABRAL DA SILVA", "ANA BEATRIZ DANTAS BERNARDO", "ANA BEATRIZ OLIVEIRA SERRA", "ANA CAROLYNA CARNEIRO SOUSA", "ANA LUIZA DE SOUSA LOURENCO", "ANNA JULIA RODRIGUES DE MELO", "DEBORA IOLANDA GOMES DA SILVA", "DEVIDSON RAMOS DE OLIVEIRA", "DIOGO SANTOS FERREIRA", "FERNANDO ERLANIO DE OLIVEIRA AGUIAR", "JESSICA DEBORA SILVA OLIVEIRA", "JOAO GABRIEL SOUSA RODRIGUES", "JOAO LUCAS SOUSA DA COSTA", "JORGE MIGUEL ARAUJO LOPES", "JULIA EVELLEN PAIVA DA SILVA", "KAILANY DA SILVA COSTA", "KAROLLAINY OLIVEIRA SOUSA", "KAUA ARAUJO MENDES", "LUIS GUSTAVO COSTA FERNANDES", "LUNNA DE LIMA ABREU", "MARA LIDIA FERREIRA DE FARIAS", "MARIA ALICIA CARVALHO NUNES", "MARIA CLARA DA CRUZ SILVA", "MARIA EDUARDA BERNARDO SOUZA", "MARIA ISABEL ALVES PEREIRA", "MARYA EDUARDA DOS SANTOS LOBAO", "MOISES ARCANJO FLOR FERREIRA", "RAYSSA DA SILVA RODRIGUES", "RYAN DA SILVA COSTA", "SAMUEL SANTIAGO DE LIMA", "SAMYRA MARIA CAVALCANTE CRUZ", "THALES GABRIEL FERREIRA DE LIMA", "TIAGO TAVARES SOUZA", "YANN FERREIRA SILVA COELHO", "YASMIN SILVA COUTO"],
@@ -176,36 +125,55 @@
         }
     };
 
+    function mostrarTela(id) {
+        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+    function abrirModal() { document.getElementById('modal-recuperar').classList.remove('hidden'); }
+    function fecharModal() { document.getElementById('modal-recuperar').classList.add('hidden'); }
+
+    async function acaoLogin() {
+        const email = document.getElementById('login-email').value;
+        const senha = document.getElementById('login-senha').value;
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password: senha });
+        if (error) return alert("Erro no Login: " + error.message);
+        professorAtivo = data.user.user_metadata.full_name || email;
+        document.getElementById('info-prof').innerText = "Prof: " + professorAtivo;
+        mostrarTela('tela-index');
+    }
+
+    async function acaoCadastro() {
+        const email = document.getElementById('cad-email').value;
+        const senha = document.getElementById('cad-senha').value;
+        const nome = document.getElementById('cad-nome').value;
+        const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
+        if (error) alert(error.message); else { alert("Sucesso! Faça login."); mostrarTela('tela-login'); }
+    }
+
+    async function enviarEmailRecuperacao() {
+        const email = document.getElementById('email-recuperacao').value;
+        const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/recuperar.html" });
+        if (error) alert(error.message); else { alert("E-mail enviado! Verifique sua caixa de entrada."); fecharModal(); }
+    }
+
     function atualizarTurmas() {
         const mod = document.getElementById('modalidade').value;
         const sel = document.getElementById('turma');
         sel.innerHTML = '<option value="">Turma...</option>';
-        if(mod) Object.keys(dadosEscola[mod]).forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
+        if(mod && dadosEscola[mod]) Object.keys(dadosEscola[mod]).forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
     }
 
     function iniciarChamada() {
-        const data = document.getElementById('data-aula').value;
         const mod = document.getElementById('modalidade').value;
         const tur = document.getElementById('turma').value;
-        const are = document.getElementById('area').value;
-        if(!data || !tur || !are) return alert("Por favor, preencha todos os filtros da aula.");
-
+        if(!tur) return alert("Selecione a turma.");
         const lista = dadosEscola[mod][tur];
         const container = document.getElementById('lista-alunos');
         container.innerHTML = "";
         chamadaAtual = [];
-
         lista.forEach((nome, i) => {
             chamadaAtual.push({ nome: nome, status: 'P' });
-            container.innerHTML += `
-                <div class="aluno-card">
-                    <span class="aluno-nome">${nome}</span>
-                    <div class="toggles">
-                        <div class="t-btn active-p" id="p-${i}" onclick="marcar(${i}, 'P')">P</div>
-                        <div class="t-btn" id="f-${i}" onclick="marcar(${i}, 'F')">F</div>
-                        <div class="t-btn" id="j-${i}" onclick="marcar(${i}, 'J')">J</div>
-                    </div>
-                </div>`;
+            container.innerHTML += `<div class="aluno-card"><span class="aluno-nome">${nome}</span><div class="toggles"><div class="t-btn active-p" id="p-${i}" onclick="marcar(${i},'P')">P</div><div class="t-btn" id="f-${i}" onclick="marcar(${i},'F')">F</div><div class="t-btn" id="j-${i}" onclick="marcar(${i},'J')">J</div></div></div>`;
         });
         document.getElementById('titulo-chamada').innerText = "Chamada: " + tur;
         mostrarTela('tela-chamada');
@@ -213,18 +181,14 @@
 
     function marcar(idx, status) {
         chamadaAtual[idx].status = status;
-        document.getElementById(`p-${idx}`).classList.remove('active-p');
-        document.getElementById(`f-${idx}`).classList.remove('active-f');
-        document.getElementById(`j-${idx}`).classList.remove('active-j');
-        if(status === 'P') document.getElementById(`p-${idx}`).classList.add('active-p');
-        if(status === 'F') document.getElementById(`f-${idx}`).classList.add('active-f');
-        if(status === 'J') document.getElementById(`j-${idx}`).classList.add('active-j');
+        document.getElementById(`p-${idx}`).className = status==='P'?'t-btn active-p':'t-btn';
+        document.getElementById(`f-${idx}`).className = status==='F'?'t-btn active-f':'t-btn';
+        document.getElementById(`j-${idx}`).className = status==='J'?'t-btn active-j':'t-btn';
     }
 
     async function enviarParaPlanilha() {
         const btn = document.getElementById('btn-salvar');
-        btn.innerText = "ENVIANDO... AGUARDE"; btn.disabled = true;
-
+        btn.innerText = "ENVIANDO..."; btn.disabled = true;
         const payload = chamadaAtual.map(a => ({
             data: document.getElementById('data-aula').value,
             professor: professorAtivo,
@@ -234,19 +198,14 @@
             aluno: a.nome,
             status: a.status === 'P' ? 'Presença' : (a.status === 'F' ? 'Falta' : 'Justificada')
         }));
-
         try {
             await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert("✅ Chamada registrada com sucesso no Google Drive!");
-            mostrarTela('tela-index');
-        } catch (e) {
-            alert("Erro ao salvar: " + e.message);
-        } finally {
-            btn.innerText = "SALVAR NA PLANILHA"; btn.disabled = false;
-        }
+            alert("✅ Chamada salva!"); mostrarTela('tela-index');
+        } catch (e) { alert("Erro ao salvar."); }
+        btn.innerText = "SALVAR NA PLANILHA"; btn.disabled = false;
     }
 </script>
 </body>
-
 </html>
+
 
