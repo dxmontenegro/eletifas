@@ -6,61 +6,26 @@
     <title>Nova Senha - EEMTI Dragão do Mar</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #004d40; --bg: #f1f8f7; --secondary: #00796b; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: var(--primary); margin-bottom: 10px; }
-        p { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 8px; border: 1.5px solid #ccd1d9; box-sizing: border-box; font-size: 16px; }
-        .btn-main { width: 100%; padding: 14px; margin-top: 20px; border-radius: 8px; background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-main:hover { background-color: var(--secondary); }
+        body { font-family: sans-serif; background: #f1f8f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #004d40; color: white; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Redefinir Senha</h2>
-        <p>Crie uma nova senha de acesso para sua conta.</p>
-        
-        <input type="password" id="nova-senha" placeholder="Nova senha (min. 6 dígitos)">
-        <input type="password" id="confirma-senha" placeholder="Confirme a nova senha">
-        
-        <button class="btn-main" id="btn-atualizar" onclick="atualizarSenha()">ATUALIZAR SENHA</button>
+    <div class="box">
+        <h2 style="color:#004d40">Nova Senha</h2>
+        <p style="font-size:0.9rem; color:#666">Digite sua nova senha abaixo:</p>
+        <input type="password" id="n-senha" placeholder="Mínimo 6 caracteres">
+        <button onclick="salvar()">ATUALIZAR SENHA</button>
     </div>
-
     <script>
-        // Configuração do Supabase (mesmas credenciais do index)
-        const SUPABASE_URL = 'https://mspucfzsdpejwnhmwwmk.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_E6S5Xx028e1ue_4EQsj6qA_tBilAr8R';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function atualizarSenha() {
-            const senha = document.getElementById('nova-senha').value;
-            const confirma = document.getElementById('confirma-senha').value;
-            const btn = document.getElementById('btn-atualizar');
-
-            if (senha.length < 6) {
-                return alert("A senha deve ter pelo menos 6 caracteres.");
-            }
-
-            if (senha !== confirma) {
-                return alert("As senhas não coincidem. Verifique a digitação.");
-            }
-
-            btn.innerText = "PROCESSANDO...";
-            btn.disabled = true;
-
-            // Comando que efetivamente troca a senha no Supabase
-            const { error } = await _supabase.auth.updateUser({ password: senha });
-
-            if (error) {
-                alert("Erro ao atualizar: " + error.message);
-                btn.innerText = "ATUALIZAR SENHA";
-                btn.disabled = false;
-            } else {
-                alert("✅ Senha alterada com sucesso! Agora você pode fazer login.");
-                // Redireciona para a página principal
-                window.location.href = "index.html";
-            }
+        const _supabase = supabase.createClient('https://bdjqajzhlkdfagdfknmh.supabase.co', 'sb_publishable_OzKhMbCCGNxDLcpmLb4SIg_2I-bKYf1');
+        async function salvar() {
+            const s = document.getElementById('n-senha').value;
+            if(s.length < 6) return alert("A senha deve ter 6 ou mais caracteres.");
+            const { error } = await _supabase.auth.updateUser({ password: s });
+            if(error) alert("Erro: " + error.message); else { alert("Senha alterada! Use sua nova senha para logar."); window.location.href="index.html"; }
         }
     </script>
 </body>
