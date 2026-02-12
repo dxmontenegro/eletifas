@@ -14,7 +14,6 @@
 </head>
 <body>
     <div class="box">
-
         <h2 style="color:#004d40">Nova Senha</h2>
         <p style="font-size:0.9rem; color:#666">Digite sua nova senha abaixo:</p>
         <input type="password" id="n-senha" placeholder="Mínimo 6 caracteres">
@@ -22,11 +21,20 @@
     </div>
     <script>
         const _supabase = supabase.createClient('https://bdjqajzhlkdfagdfknmh.supabase.co', 'sb_publishable_OzKhMbCCGNxDLcpmLb4SIg_2I-bKYf1');
+
         async function salvar() {
             const s = document.getElementById('n-senha').value;
             if(s.length < 6) return alert("A senha deve ter 6 ou mais caracteres.");
+            
             const { error } = await _supabase.auth.updateUser({ password: s });
-            if(error) alert("Erro: " + error.message); else { alert("Senha alterada! Use sua nova senha para logar."); window.location.href="index.html"; }
+            
+            if(error) {
+                alert("Erro ao atualizar: " + error.message);
+            } else {
+                alert("Senha alterada com sucesso! Você será redirecionado para o login.");
+                // Retorna para a página principal da Vercel
+                window.location.href = "https://eletifas.vercel.app/";
+            }
         }
     </script>
 </body>
