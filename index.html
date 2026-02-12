@@ -3,58 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frequência Eletivas - EEMTI Dragão do Mar</title>
+    <title>eletIFAS - EEMTI DRAGÃO DO MAR</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #004d40; --secondary: #00796b; --bg: #f1f8f7; }
+        :root { --primary: #004d40; --secondary: #00796b; --bg: #f1f8f7; --accent: #c62828; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; margin-top: 10px; }
+        
+        .container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 550px; 
+            text-align: center; 
+            position: relative; 
+            min-height: 600px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
         .hidden { display: none !important; }
-        .logo-escola { width: 100px; height: auto; margin: 0 auto 15px auto; display: block; }
-        h2, h3 { color: var(--primary); margin-bottom: 15px; }
-        input, select, button { width: 100%; padding: 14px; margin-top: 8px; border-radius: 8px; border: 1.5px solid #ccd1d9; box-sizing: border-box; font-size: 16px; }
-        .btn-main { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        
+        .logo-escola { 
+            width: 120px; 
+            margin: 0 auto 10px auto; 
+            display: block;
+        }
+
+        h1 { color: var(--primary); font-size: 28px; margin: 0; }
+        h2 { color: var(--secondary); font-size: 16px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1.5px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        
+        .btn-main { background: var(--primary); color: white; font-weight: bold; cursor: pointer; border: none; }
         .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); font-weight: bold; cursor: pointer; }
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        .aluno-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #eee; text-align: left; }
-        .aluno-nome { flex: 1; font-size: 0.75rem; color: #444; text-transform: uppercase; font-weight: 500; padding-right: 5px; }
-        .toggles { display: flex; gap: 4px; }
-        .t-btn { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; background: #fff; }
-        .active-p { background: #2e7d32 !important; color: white !important; border-color: #1b5e20 !important; }
-        .active-f { background: #c62828 !important; color: white !important; border-color: #b71c1c !important; }
-        .active-j { background: #ef6c00 !important; color: white !important; border-color: #e65100 !important; }
-        .header-app { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.8rem; background: #e0f2f1; padding: 10px; border-radius: 8px; align-items: center; }
-        .link-recuperar { display: block; margin-top: 15px; font-size: 0.85rem; color: var(--secondary); text-decoration: none; cursor: pointer; font-weight: 500; }
+        .btn-link { background: none; border: none; color: var(--secondary); text-decoration: underline; cursor: pointer; font-size: 13px; margin-top: 10px; }
+        
+        .btn-sair { 
+            background: var(--accent); 
+            color: white; 
+            padding: 8px 15px; 
+            font-size: 12px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            width: auto; 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+        }
+        
+        .footer-credits { 
+            margin-top: auto; 
+            padding-top: 30px; 
+            font-size: 11px; 
+            color: var(--accent); 
+            font-family: 'Courier New', Courier, monospace; 
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .tabela-wrapper { overflow-x: auto; margin-top: 15px; width: 100%; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: var(--primary); color: white; padding: 8px; }
+        td { border: 1px solid #ddd; padding: 5px; text-align: center; }
+        .nome-aluno { text-align: left; font-size: 10px; font-weight: bold; text-transform: uppercase; min-width: 150px; }
+        .input-nota { width: 45px; text-align: center; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none; }
+        .show-nota { display: inline-block !important; }
+        .toggle-col { background: #e0f2f1; border: 1px solid var(--primary); font-size: 10px; padding: 2px 5px; cursor: pointer; border-radius: 4px; display: block; margin-top: 3px; color: #333; }
+        .col-ativa { background: var(--secondary) !important; color: white !important; }
+
+        .aluno-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; width: 100%; }
+        .aluno-nome { font-size: 11px; text-align: left; flex: 1; text-transform: uppercase; }
+        .toggles-chamada { display: flex; gap: 5px; }
+        .t-btn { width: 32px; height: 32px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; border-radius: 4px; background: #fff; }
+        .active-p { background: #2e7d32 !important; color: white !important; }
+        .active-f-cor { background: var(--accent) !important; color: white !important; }
+        .active-j { background: #ef6c00 !important; color: white !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <img src="imagem1.png" alt="Logo da Escola" class="logo-escola">
+    <img src="imagem1.png" class="logo-escola" alt="Logo EEMTI">
+    <h1>eletIFAS</h1>
+    <h2>EEMTI DRAGÃO DO MAR</h2>
 
-    <div id="tela-login">
-        <h2>SISTEMA DE FREQUÊNCIA</h2>
-        <p style="margin-top:-10px; color: #666">eletIFAS</p>
+    <div id="tela-login" style="width: 100%;">
         <input type="email" id="login-email" placeholder="E-mail">
         <input type="password" id="login-senha" placeholder="Senha">
         <button class="btn-main" onclick="acaoLogin()">ENTRAR</button>
-        <a class="link-recuperar" onclick="abrirModal()">Esqueci minha senha</a>
-        <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
-        <button class="btn-outline" onclick="mostrarTela('tela-cadastro')">CRIAR CONTA</button>
+        <button class="btn-link" onclick="esqueciSenha()">Esqueci minha senha</button>
+        <button class="btn-outline" style="margin-top:20px" onclick="mostrarTela('tela-cadastro')">CRIAR CONTA</button>
     </div>
 
-    <div id="modal-recuperar" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Recuperar Senha</h3>
-            <p style="font-size: 0.9rem; color: #666">Digite seu e-mail para receber o link.</p>
-            <input type="email" id="email-recuperacao" placeholder="E-mail cadastrado">
-            <button class="btn-main" onclick="enviarEmailRecuperacao()">ENVIAR E-MAIL</button>
-            <button class="btn-outline" style="margin-top:10px" onclick="fecharModal()">CANCELAR</button>
-        </div>
-    </div>
-
-    <div id="tela-cadastro" class="hidden">
+    <div id="tela-cadastro" class="hidden" style="width: 100%;">
         <h3>Novo Professor</h3>
         <input type="text" id="cad-nome" placeholder="Nome Completo">
         <input type="email" id="cad-email" placeholder="E-mail">
@@ -63,18 +108,13 @@
         <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-login')">VOLTAR</button>
     </div>
 
-    <div id="tela-index" class="hidden">
-        <div class="header-app"><span id="info-prof">Professor</span><button onclick="location.reload()" style="width:auto; margin:0; padding:5px 10px; font-size:11px">Sair</button></div>
-        <h2>O que deseja fazer?</h2>
-        <button class="btn-main" style="height: 100px;" onclick="mostrarTela('tela-filtros')">📝 FAZER CHAMADA</button>
-        <button class="btn-outline" style="height: 100px; margin-top: 15px;" onclick="alert('Módulo de Notas em breve')">📊 INSERIR NOTAS</button>
-    </div>
-
-    <div id="tela-filtros" class="hidden">
-        <h3>Configurar Aula</h3>
+    <div id="tela-index" class="hidden" style="width: 100%;">
+        <button class="btn-sair" onclick="fazerLogout()">SAIR</button>
+        <div style="text-align:left; font-size:12px; color: #666; margin-bottom: 10px;" id="info-prof">Professor</div>
+        
         <input type="date" id="data-aula">
         <select id="area">
-            <option value="">Área...</option>
+            <option value="">Selecione a Área...</option>
             <option value="GESTÃO">GESTÃO</option>
             <option value="Linguagens">Linguagens</option>
             <option value="Matemática">Matemática</option>
@@ -86,27 +126,62 @@
             <option value="integral">Integral</option>
             <option value="noturno">Noturno</option>
         </select>
-        <select id="turma"><option value="">Turma...</option></select>
-        <button class="btn-main" onclick="iniciarChamada()">CARREGAR LISTA</button>
+        <select id="turma"><option value="">Selecione a Turma...</option></select>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-main" onclick="abrirModulo('chamada')">📝 CHAMADA</button>
+            <button class="btn-outline" onclick="abrirModulo('notas')">📊 NOTAS</button>
+        </div>
+    </div>
+
+    <div id="tela-chamada" class="hidden" style="width: 100%;">
+        <h3 id="titulo-chamada"></h3>
+        <div id="lista-alunos-chamada" style="max-height: 400px; overflow-y: auto;"></div>
+        <button class="btn-main" style="margin-top:20px" id="btn-salvar-freq" onclick="enviarFrequencia()">SALVAR CHAMADA</button>
         <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-index')">VOLTAR</button>
     </div>
 
-    <div id="tela-chamada" class="hidden">
-        <h3 id="titulo-chamada">Chamada</h3>
-        <div id="lista-alunos"></div>
-        <button id="btn-salvar" class="btn-main" style="background:#2e7d32; margin-top:20px" onclick="enviarParaPlanilha()">SALVAR NA PLANILHA</button>
-        <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-filtros')">CANCELAR</button>
+    <div id="tela-notas" class="hidden" style="width: 100%;">
+        <h3 id="titulo-notas"> Lançamento de Notas</h3>
+        <select id="bimestre-selecionado">
+            <option>1º BIMESTRE</option><option>2º BIMESTRE</option>
+            <option>3º BIMESTRE</option><option>4º BIMESTRE</option>
+        </select>
+        <div class="tabela-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estudante</th>
+                        <th>N1 <span class="toggle-col" id="t-n1" onclick="toggleNota('n1')">LIGAR</span></th>
+                        <th>N2 <span class="toggle-col" id="t-n2" onclick="toggleNota('n2')">LIGAR</span></th>
+                        <th>N3 <span class="toggle-col" id="t-n3" onclick="toggleNota('n3')">LIGAR</span></th>
+                        <th>MÉD.</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-notas"></tbody>
+            </table>
+        </div>
+        <button class="btn-main" style="margin-top:20px" id="btn-salvar-notas" onclick="enviarNotas()">SALVAR NA PLANILHA</button>
+        <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-index')">VOLTAR</button>
+    </div>
+
+    <div class="footer-credits">
+        DESENVOLVIDO POR D.S.MONTENEGRO - 2026<br>
+        LEI - EEMTI DRAGÃO DO MAR
     </div>
 </div>
 
 <script>
+    // Configurações Supabase (Atualizadas conforme sua orientação)
     const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_OzKhMbCCGNxDLcpmLb4SIg_2I-bKYf1';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbwJtbLr5nNCrgtn7mdLSKLdwjkiKJpprGlz9JKZ-pZ0mHvr7lNcHDoLutFNJp-hAXqvpA/exec';
+    
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbwnwtgo2e2X3UCgRcBtVAy6xdHZdbXVC-X8t2owARg1YoMyGUuzOFtSzKGhUVIecpqwBQ/exec';
 
     let professorAtivo = "";
-    let chamadaAtual = [];
+    let listaAtualAlunos = [];
+    document.getElementById('data-aula').valueAsDate = new Date();
 
     const dadosEscola = {
         integral: {
@@ -130,16 +205,14 @@
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
-    function abrirModal() { document.getElementById('modal-recuperar').classList.remove('hidden'); }
-    function fecharModal() { document.getElementById('modal-recuperar').classList.add('hidden'); }
 
     async function acaoLogin() {
         const email = document.getElementById('login-email').value;
         const senha = document.getElementById('login-senha').value;
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) return alert("Erro no Login: " + error.message);
+        if (error) return alert("Erro: " + error.message);
         professorAtivo = data.user.user_metadata.full_name || email;
-        document.getElementById('info-prof').innerText = "Prof: " + professorAtivo;
+        document.getElementById('info-prof').innerText = "Logado como: " + professorAtivo;
         mostrarTela('tela-index');
     }
 
@@ -148,68 +221,154 @@
         const senha = document.getElementById('cad-senha').value;
         const nome = document.getElementById('cad-nome').value;
         const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
-        if (error) alert(error.message); else { alert("Sucesso! Faça login."); mostrarTela('tela-login'); }
+        if (error) alert(error.message); else { alert("Conta criada! Verifique seu e-mail."); mostrarTela('tela-login'); }
     }
 
-    async function enviarEmailRecuperacao() {
-        const email = document.getElementById('email-recuperacao').value;
-        const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/recuperar.html" });
-        if (error) alert(error.message); else { alert("E-mail enviado! Verifique sua caixa de entrada."); fecharModal(); }
+    async function fazerLogout() {
+        await _supabase.auth.signOut();
+        professorAtivo = "";
+        mostrarTela('tela-login');
+    }
+
+    async function esqueciSenha() {
+        const email = document.getElementById('login-email').value;
+        if(!email) return alert("Digite o e-mail no campo de login!");
+        const { error } = await _supabase.auth.resetPasswordForEmail(email);
+        if (error) alert(error.message); else alert("Link de recuperação enviado!");
     }
 
     function atualizarTurmas() {
         const mod = document.getElementById('modalidade').value;
         const sel = document.getElementById('turma');
         sel.innerHTML = '<option value="">Turma...</option>';
-        if(mod && dadosEscola[mod]) Object.keys(dadosEscola[mod]).forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
+        if(mod && dadosEscola[mod]) {
+            Object.keys(dadosEscola[mod]).forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
+        }
     }
 
-    function iniciarChamada() {
+    function abrirModulo(tipo) {
         const mod = document.getElementById('modalidade').value;
         const tur = document.getElementById('turma').value;
-        if(!tur) return alert("Selecione a turma.");
-        const lista = dadosEscola[mod][tur];
-        const container = document.getElementById('lista-alunos');
-        container.innerHTML = "";
-        chamadaAtual = [];
-        lista.forEach((nome, i) => {
-            chamadaAtual.push({ nome: nome, status: 'P' });
-            container.innerHTML += `<div class="aluno-card"><span class="aluno-nome">${nome}</span><div class="toggles"><div class="t-btn active-p" id="p-${i}" onclick="marcar(${i},'P')">P</div><div class="t-btn" id="f-${i}" onclick="marcar(${i},'F')">F</div><div class="t-btn" id="j-${i}" onclick="marcar(${i},'J')">J</div></div></div>`;
-        });
-        document.getElementById('titulo-chamada').innerText = "Chamada: " + tur;
-        mostrarTela('tela-chamada');
+        const are = document.getElementById('area').value;
+        if(!tur || !are) return alert("Preencha Área, Modalidade e Turma!");
+        
+        listaAtualAlunos = dadosEscola[mod][tur];
+
+        if(tipo === 'chamada') {
+            const container = document.getElementById('lista-alunos-chamada');
+            container.innerHTML = "";
+            listaAtualAlunos.forEach((nome, i) => {
+                container.innerHTML += `
+                    <div class="aluno-card">
+                        <span class="aluno-nome">${nome}</span>
+                        <div class="toggles-chamada">
+                            <div class="t-btn active-p" id="p-${i}" onclick="marcar(${i},'P')">P</div>
+                            <div class="t-btn" id="f-${i}" onclick="marcar(${i},'F')">F</div>
+                            <div class="t-btn" id="j-${i}" onclick="marcar(${i},'J')">J</div>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('titulo-chamada').innerText = "Chamada: " + tur;
+            mostrarTela('tela-chamada');
+        } else {
+            const corpo = document.getElementById('corpo-notas');
+            corpo.innerHTML = "";
+            listaAtualAlunos.forEach((nome, i) => {
+                corpo.innerHTML += `
+                    <tr>
+                        <td class="nome-aluno">${nome}</td>
+                        <td><input type="number" step="0.1" class="input-nota n1" id="n1-${i}" oninput="calc(${i})"></td>
+                        <td><input type="number" step="0.1" class="input-nota n2" id="n2-${i}" oninput="calc(${i})"></td>
+                        <td><input type="number" step="0.1" class="input-nota n3" id="n3-${i}" oninput="calc(${i})"></td>
+                        <td id="m-${i}" style="font-weight:bold; color:var(--primary)">0</td>
+                    </tr>`;
+            });
+            document.getElementById('titulo-notas').innerText = "Notas: " + tur;
+            mostrarTela('tela-notas');
+        }
     }
 
-    function marcar(idx, status) {
-        chamadaAtual[idx].status = status;
-        document.getElementById(`p-${idx}`).className = status==='P'?'t-btn active-p':'t-btn';
-        document.getElementById(`f-${idx}`).className = status==='F'?'t-btn active-f':'t-btn';
-        document.getElementById(`j-${idx}`).className = status==='J'?'t-btn active-j':'t-btn';
+    function marcar(i, status) {
+        document.getElementById(`p-${i}`).className = status === 'P' ? 't-btn active-p' : 't-btn';
+        document.getElementById(`f-${i}`).className = status === 'F' ? 't-btn active-f-cor' : 't-btn';
+        document.getElementById(`j-${i}`).className = status === 'J' ? 't-btn active-j' : 't-btn';
     }
 
-    async function enviarParaPlanilha() {
-        const btn = document.getElementById('btn-salvar');
+    // FUNÇÃO TOGGLE CORRIGIDA E SINCRONIZADA
+    function toggleNota(col) {
+        const inputs = document.querySelectorAll('.' + col);
+        const btn = document.getElementById('t-' + col);
+        
+        // Verifica o estado atual baseado na primeira nota da lista
+        const estaVisivel = inputs[0].classList.contains('show-nota');
+
+        if (estaVisivel) {
+            inputs.forEach(inp => inp.classList.remove('show-nota'));
+            btn.classList.remove('col-ativa');
+            btn.innerText = 'LIGAR';
+        } else {
+            inputs.forEach(inp => inp.classList.add('show-nota'));
+            btn.classList.add('col-ativa');
+            btn.innerText = 'DESLIGAR';
+        }
+    }
+
+    function calc(i) {
+        const n1_v = document.getElementById(`n1-${i}`).value;
+        const n2_v = document.getElementById(`n2-${i}`).value;
+        const n3_v = document.getElementById(`n3-${i}`).value;
+        let soma = 0, qtd = 0;
+        if(n1_v !== "") { soma += parseFloat(n1_v); qtd++; }
+        if(n2_v !== "") { soma += parseFloat(n2_v); qtd++; }
+        if(n3_v !== "") { soma += parseFloat(n3_v); qtd++; }
+        document.getElementById(`m-${i}`).innerText = qtd > 0 ? (soma / qtd).toFixed(1) : "0";
+    }
+
+    async function enviarFrequencia() {
+        const btn = document.getElementById('btn-salvar-freq');
         btn.innerText = "ENVIANDO..."; btn.disabled = true;
-        const payload = chamadaAtual.map(a => ({
+        const payload = listaAtualAlunos.map((nome, i) => ({
             data: document.getElementById('data-aula').value,
             professor: professorAtivo,
             area: document.getElementById('area').value,
             modalidade: document.getElementById('modalidade').value,
             turma: document.getElementById('turma').value,
-            aluno: a.nome,
-            status: a.status === 'P' ? 'Presença' : (a.status === 'F' ? 'Falta' : 'Justificada')
+            aluno: nome,
+            status: document.getElementById(`p-${i}`).classList.contains('active-p') ? 'Presença' : 
+                   (document.getElementById(`f-${i}`).classList.contains('active-f-cor') ? 'Falta' : 'Justificada')
         }));
         try {
             await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert("✅ Chamada salva!"); mostrarTela('tela-index');
+            alert("Frequência enviada!");
+            mostrarTela('tela-index');
+        } catch (e) { alert("Erro ao salvar."); }
+        btn.innerText = "SALVAR CHAMADA"; btn.disabled = false;
+    }
+
+    async function enviarNotas() {
+        const btn = document.getElementById('btn-salvar-notas');
+        btn.innerText = "ENVIANDO..."; btn.disabled = true;
+        const payload = listaAtualAlunos.map((nome, i) => ({
+            professor: professorAtivo,
+            turma: document.getElementById('turma').value,
+            area: document.getElementById('area').value,
+            bimestre: document.getElementById('bimestre-selecionado').value,
+            aluno: nome,
+            n1: document.getElementById(`n1-${i}`).value || "",
+            n2: document.getElementById(`n2-${i}`).value || "",
+            n3: document.getElementById(`n3-${i}`).value || "",
+            media: document.getElementById(`m-${i}`).innerText
+        }));
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+            alert("Notas enviadas com sucesso!");
+            mostrarTela('tela-index');
         } catch (e) { alert("Erro ao salvar."); }
         btn.innerText = "SALVAR NA PLANILHA"; btn.disabled = false;
     }
 </script>
 </body>
 </html>
-
-
 
 
 
