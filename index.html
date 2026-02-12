@@ -8,63 +8,17 @@
     <style>
         :root { --primary: #004d40; --secondary: #00796b; --bg: #f1f8f7; --accent: #c62828; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; }
-        
-        .container { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 550px; 
-            text-align: center; 
-            position: relative; 
-            min-height: 600px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-
+        .container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; position: relative; min-height: 600px; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
-        
-        .logo-escola { 
-            width: 120px; 
-            margin: 0 auto 10px auto; 
-            display: block;
-        }
-
+        .logo-escola { width: 120px; margin: 0 auto 10px auto; display: block; }
         h1 { color: var(--primary); font-size: 28px; margin: 0; }
         h2 { color: var(--secondary); font-size: 16px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        
         input, select, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1.5px solid #ccc; box-sizing: border-box; font-size: 16px; }
-        
         .btn-main { background: var(--primary); color: white; font-weight: bold; cursor: pointer; border: none; }
         .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); font-weight: bold; cursor: pointer; }
         .btn-link { background: none; border: none; color: var(--secondary); text-decoration: underline; cursor: pointer; font-size: 13px; margin-top: 10px; }
-        
-        .btn-sair { 
-            background: var(--accent); 
-            color: white; 
-            padding: 8px 15px; 
-            font-size: 12px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            width: auto; 
-            position: absolute; 
-            top: 20px; 
-            right: 20px; 
-        }
-        
-        .footer-credits { 
-            margin-top: auto; 
-            padding-top: 30px; 
-            font-size: 11px; 
-            color: var(--accent); 
-            font-family: 'Courier New', Courier, monospace; 
-            font-weight: bold;
-            line-height: 1.4;
-        }
-
+        .btn-sair { background: var(--accent); color: white; padding: 8px 15px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; width: auto; position: absolute; top: 20px; right: 20px; }
+        .footer-credits { margin-top: auto; padding-top: 30px; font-size: 11px; color: var(--accent); font-family: 'Courier New', Courier, monospace; font-weight: bold; line-height: 1.4; }
         .tabela-wrapper { overflow-x: auto; margin-top: 15px; width: 100%; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: var(--primary); color: white; padding: 8px; }
@@ -74,7 +28,6 @@
         .show-nota { display: inline-block !important; }
         .toggle-col { background: #e0f2f1; border: 1px solid var(--primary); font-size: 10px; padding: 2px 5px; cursor: pointer; border-radius: 4px; display: block; margin-top: 3px; color: #333; }
         .col-ativa { background: var(--secondary) !important; color: white !important; }
-
         .aluno-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; width: 100%; }
         .aluno-nome { font-size: 11px; text-align: left; flex: 1; text-transform: uppercase; }
         .toggles-chamada { display: flex; gap: 5px; }
@@ -111,7 +64,6 @@
     <div id="tela-index" class="hidden" style="width: 100%;">
         <button class="btn-sair" onclick="fazerLogout()">SAIR</button>
         <div style="text-align:left; font-size:12px; color: #666; margin-bottom: 10px;" id="info-prof">Professor</div>
-        
         <input type="date" id="data-aula">
         <select id="area">
             <option value="">Selecione a Área...</option>
@@ -127,7 +79,6 @@
             <option value="noturno">Noturno</option>
         </select>
         <select id="turma"><option value="">Selecione a Turma...</option></select>
-        
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn-main" onclick="abrirModulo('chamada')">📝 CHAMADA</button>
             <button class="btn-outline" onclick="abrirModulo('notas')">📊 NOTAS</button>
@@ -172,11 +123,9 @@
 </div>
 
 <script>
-    // Configurações Supabase (Atualizadas conforme sua orientação)
     const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_OzKhMbCCGNxDLcpmLb4SIg_2I-bKYf1';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbwnwtgo2e2X3UCgRcBtVAy6xdHZdbXVC-X8t2owARg1YoMyGUuzOFtSzKGhUVIecpqwBQ/exec';
 
     let professorAtivo = "";
@@ -230,11 +179,14 @@
         mostrarTela('tela-login');
     }
 
+    // CORREÇÃO: Direcionando para a página recuperacao.html
     async function esqueciSenha() {
         const email = document.getElementById('login-email').value;
         if(!email) return alert("Digite o e-mail no campo de login!");
-        const { error } = await _supabase.auth.resetPasswordForEmail(email);
-        if (error) alert(error.message); else alert("Link de recuperação enviado!");
+        const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://eletifas.vercel.app/recuperacao.html',
+        });
+        if (error) alert(error.message); else alert("Link de recuperação enviado! Verifique seu e-mail.");
     }
 
     function atualizarTurmas() {
@@ -251,9 +203,7 @@
         const tur = document.getElementById('turma').value;
         const are = document.getElementById('area').value;
         if(!tur || !are) return alert("Preencha Área, Modalidade e Turma!");
-        
         listaAtualAlunos = dadosEscola[mod][tur];
-
         if(tipo === 'chamada') {
             const container = document.getElementById('lista-alunos-chamada');
             container.innerHTML = "";
@@ -294,14 +244,10 @@
         document.getElementById(`j-${i}`).className = status === 'J' ? 't-btn active-j' : 't-btn';
     }
 
-    // FUNÇÃO TOGGLE CORRIGIDA E SINCRONIZADA
     function toggleNota(col) {
         const inputs = document.querySelectorAll('.' + col);
         const btn = document.getElementById('t-' + col);
-        
-        // Verifica o estado atual baseado na primeira nota da lista
         const estaVisivel = inputs[0].classList.contains('show-nota');
-
         if (estaVisivel) {
             inputs.forEach(inp => inp.classList.remove('show-nota'));
             btn.classList.remove('col-ativa');
@@ -361,7 +307,7 @@
         }));
         try {
             await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert("Notas enviadas com sucesso!");
+            alert("Notas enviadas!");
             mostrarTela('tela-index');
         } catch (e) { alert("Erro ao salvar."); }
         btn.innerText = "SALVAR NA PLANILHA"; btn.disabled = false;
@@ -369,6 +315,7 @@
 </script>
 </body>
 </html>
+
 
 
 
