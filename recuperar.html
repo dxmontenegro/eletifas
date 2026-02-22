@@ -6,34 +6,47 @@
     <title>Nova Senha - EEMTI Dragão do Mar</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f1f8f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f8f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; border-top: 5px solid #004d40; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
         button { background: #004d40; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        h2 { color: #004d40; margin-top: 0; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2 style="color:#004d40">Nova Senha</h2>
-        <p style="font-size:0.9rem; color:#666">Digite sua nova senha abaixo:</p>
+        <h2>Nova Senha</h2>
+        <p style="font-size:0.9rem; color:#666">Crie uma nova senha de acesso para o <b>eletIFAS</b>.</p>
         <input type="password" id="n-senha" placeholder="Mínimo 6 caracteres">
-        <button onclick="salvar()">ATUALIZAR SENHA</button>
+        <button id="btn-salvar" onclick="salvar()">ATUALIZAR SENHA</button>
     </div>
+
     <script>
-        const _supabase = supabase.createClient('https://bdjqajzhlkdfagdfknmh.supabase.co', 'sb_publishable_OzKhMbCCGNxDLcpmLb4SIg_2I-bKYf1');
+        // CHAVES IDENTICAS AO INDEX.HTML
+        const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function salvar() {
-            const s = document.getElementById('n-senha').value;
-            if(s.length < 6) return alert("A senha deve ter 6 ou mais caracteres.");
-            
-            const { error } = await _supabase.auth.updateUser({ password: s });
-            
+            const novaSenha = document.getElementById('n-senha').value;
+            const btn = document.getElementById('btn-salvar');
+
+            if(novaSenha.length < 6) return alert("A senha deve ter no mínimo 6 caracteres.");
+
+            btn.innerText = "SALVANDO...";
+            btn.disabled = true;
+
+            // O Supabase utiliza o token da URL para saber qual usuário está logado temporariamente
+            const { error } = await _supabase.auth.updateUser({ password: novaSenha });
+
             if(error) {
                 alert("Erro ao atualizar: " + error.message);
+                btn.innerText = "ATUALIZAR SENHA";
+                btn.disabled = false;
             } else {
-                alert("Senha alterada com sucesso! Você será redirecionado para o login.");
-                // Retorna para a página principal da Vercel
-                window.location.href = "https://eletifas.vercel.app/";
+                alert("Senha alterada com sucesso! Agora você pode entrar.");
+                window.location.href = "index.html";
             }
         }
     </script>
