@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>eletIFAS - EEMTI DRAGÃO DO MAR</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --primary: #004d40; --secondary: #00796b; --bg: #f1f8f7; --accent: #c62828; --warning: #ef6c00; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; }
@@ -17,20 +19,18 @@
         .btn-main { background: var(--primary); color: white; font-weight: bold; cursor: pointer; border: none; }
         .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); font-weight: bold; cursor: pointer; }
         .btn-relatorio { background: white; color: var(--warning); border: 2px solid var(--warning); font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-pdf { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-link { background: none; border: none; color: var(--secondary); text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 10px; width: auto; }
         .btn-sair { background: var(--accent); color: white; padding: 8px 15px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; width: auto; position: absolute; top: 20px; right: 20px; }
-        
         .filtro-card { background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; text-align: left; width: 100%; box-sizing: border-box; }
         .filtro-label { font-size: 11px; font-weight: bold; color: var(--secondary); text-transform: uppercase; margin-top: 10px; display: block; }
-        
         .tabela-wrapper { overflow-x: auto; margin-top: 15px; width: 100%; border-radius: 8px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; }
         th { background: var(--primary); color: white; padding: 10px; }
         td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         .nome-aluno { text-align: left; font-size: 11px; font-weight: bold; text-transform: uppercase; min-width: 180px; }
-        
         .aluno-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; width: 100%; }
-        .t-btn { width: 32px; height: 32px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; }
+        .t-btn { width: 34px; height: 34px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .active-p { background: #2e7d32 !important; color: white !important; }
         .active-f-cor { background: var(--accent) !important; color: white !important; }
         .active-j { background: #ef6c00 !important; color: white !important; }
@@ -64,7 +64,6 @@
     <div id="tela-index" class="hidden" style="width: 100%;">
         <button class="btn-sair" onclick="fazerLogout()">SAIR</button>
         <div id="info-prof" style="font-size:12px; margin-bottom:10px; color:#666;">Professor</div>
-        
         <input type="date" id="data-aula">
         <select id="area">
             <option value="">Área...</option>
@@ -80,7 +79,6 @@
             <option value="noturno">Noturno</option>
         </select>
         <select id="turma"><option value="">Turma...</option></select>
-        
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-main" onclick="abrirModulo('chamada')">📝 CHAMADA</button>
             <button class="btn-outline" onclick="abrirModulo('notas')">📊 NOTAS</button>
@@ -89,22 +87,21 @@
     </div>
 
     <div id="tela-relatorios" class="hidden" style="width: 100%;">
-        <h3 style="color: var(--primary); margin-bottom: 5px;">Relatório Consolidado</h3>
+        <h3 style="color: var(--primary);">Relatório Consolidado</h3>
         <div class="filtro-card">
-            <span class="filtro-label">1. Localização</span>
-            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <span class="filtro-label">Área e Turma</span>
+            <div style="display: flex; gap: 5px;">
                 <select id="rel-area" style="flex: 1.2;">
-                    <option value="">Área...</option>
                     <option value="GESTÃO">GESTÃO</option>
                     <option value="Linguagens">Linguagens</option>
                     <option value="Matemática">Matemática</option>
                     <option value="C. Natureza">C. Natureza</option>
                     <option value="C. Humanas">C. Humanas</option>
                 </select>
-                <select id="rel-turma" style="flex: 1;"><option value="">Turma...</option></select>
+                <select id="rel-turma" style="flex: 1;"></select>
             </div>
-            <span class="filtro-label">2. Escolha o Mês (Faltas)</span>
-            <select id="rel-mes" style="margin-bottom: 10px;">
+            <span class="filtro-label">Mês (Faltas)</span>
+            <select id="rel-mes">
                 <option value="01">Janeiro</option><option value="02" selected>Fevereiro</option>
                 <option value="03">Março</option><option value="04">Abril</option>
                 <option value="05">Maio</option><option value="06">Junho</option>
@@ -112,16 +109,18 @@
                 <option value="09">Setembro</option><option value="10">Outubro</option>
                 <option value="11">Novembro</option><option value="12">Dezembro</option>
             </select>
-            <span class="filtro-label">3. Escolha o Bimestre (Notas)</span>
+            <span class="filtro-label">Bimestre (Notas)</span>
             <select id="rel-bimestre">
                 <option>1º BIMESTRE</option><option>2º BIMESTRE</option>
                 <option>3º BIMESTRE</option><option>4º BIMESTRE</option>
             </select>
         </div>
-        <button class="btn-main" style="background: var(--warning);" onclick="gerarRelatorioConsolidado()">🔍 ATUALIZAR DADOS</button>
+        <button class="btn-main" style="background: var(--warning);" onclick="gerarRelatorioConsolidado()">ATUALIZAR DADOS</button>
+        <button id="btn-gerar-pdf" class="btn-pdf hidden" onclick="gerarPDF()">📄 GERAR PDF</button>
+        
         <div class="tabela-wrapper">
-            <table>
-                <thead><tr><th style="text-align: left;">Estudante</th><th>Faltas</th><th>Nota</th></tr></thead>
+            <table id="tabela-consolidada">
+                <thead><tr><th style="text-align:left;">Estudante</th><th>Faltas</th><th>Nota</th></tr></thead>
                 <tbody id="corpo-relatorio"></tbody>
             </table>
         </div>
@@ -130,8 +129,8 @@
 
     <div id="tela-chamada" class="hidden" style="width: 100%;">
         <h3 id="titulo-chamada"></h3>
-        <div id="lista-alunos-chamada" style="max-height: 350px; overflow-y: auto;"></div>
-        <button class="btn-main" id="btn-salvar-freq" onclick="enviarFrequencia()">SALVAR</button>
+        <div id="lista-alunos-chamada" style="text-align: left; width: 100%;"></div>
+        <button class="btn-main" onclick="enviarFrequencia()">SALVAR CHAMADA</button>
         <button class="btn-outline" onclick="mostrarTela('tela-index')">VOLTAR</button>
     </div>
 
@@ -196,25 +195,15 @@
         const senha = document.getElementById('cad-senha').value;
         const nome = document.getElementById('cad-nome').value;
         const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
-        if (error) alert(error.message); else { alert("Verifique seu e-mail!"); mostrarTela('tela-login'); }
+        if (error) alert(error.message); else { alert("Verifique seu e-mail para confirmar!"); mostrarTela('tela-login'); }
     }
 
     async function solicitarReset() {
-        const email = document.getElementById('login-email').value || prompt("Seu e-mail cadastrado:");
-        if (!email) return;
-        
-        // CORREÇÃO: Apontando para o arquivo de recuperação específico
-        const linkRecuperar = window.location.origin + "/recuperar.html";
-        
-        const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: linkRecuperar,
-        });
-        
-        if (error) alert(error.message);
-        else alert("Um link de redefinição foi enviado para " + email);
+        const email = document.getElementById('login-email').value || prompt("Seu e-mail:");
+        if(!email) return;
+        const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/recuperar.html" });
+        if (error) alert(error.message); else alert("Link de recuperação enviado!");
     }
-
-    async function fazerLogout() { await _supabase.auth.signOut(); mostrarTela('tela-login'); }
 
     function atualizarTurmas(idSelect) {
         const mod = document.getElementById('modalidade').value;
@@ -283,10 +272,9 @@
         if (error) alert(error.message); else { alert("Notas salvas!"); mostrarTela('tela-index'); }
     }
 
-    // RELATÓRIO CONSOLIDADO
     function abrirPainelRelatorio() {
         const mod = document.getElementById('modalidade').value;
-        if(!mod) return alert("Selecione a Modalidade primeiro!");
+        if(!mod) return alert("Selecione a Modalidade!");
         atualizarTurmas('rel-turma');
         document.getElementById('rel-area').value = document.getElementById('area').value;
         document.getElementById('rel-turma').value = document.getElementById('turma').value;
@@ -300,9 +288,9 @@
         const mesRef = document.getElementById('rel-mes').value;
         const bimRef = document.getElementById('rel-bimestre').value;
 
-        if(!tur || !are) return alert("Escolha Área e Turma!");
+        if(!tur || !are) return alert("Filtros incompletos!");
         const corpo = document.getElementById('corpo-relatorio');
-        corpo.innerHTML = "<tr><td colspan='3'>🔄 Sincronizando...</td></tr>";
+        corpo.innerHTML = "<tr><td colspan='3'>🔄 Buscando dados...</td></tr>";
 
         const { data: fData } = await _supabase.from('frequencia').select('aluno, data').eq('turma', tur).eq('area', are).eq('status', 'Falta');
         const { data: nData } = await _supabase.from('notas').select('aluno, nota').eq('turma', tur).eq('area', are).eq('bimestre', bimRef);
@@ -311,9 +299,41 @@
         dadosEscola[mod][tur].forEach(aluno => {
             const faltas = fData?.filter(f => f.aluno === aluno && f.data.includes(`-${mesRef}-`)).length || 0;
             const notaObj = nData?.find(n => n.aluno === aluno);
-            corpo.innerHTML += `<tr><td class="nome-aluno">${aluno}</td><td style="font-weight:bold; color:${faltas>0?'red':'green'}">${faltas}</td><td style="font-weight:bold; color:var(--primary)">${notaObj?notaObj.nota.toFixed(1):'---'}</td></tr>`;
+            corpo.innerHTML += `<tr><td class="nome-aluno">${aluno}</td><td style="font-weight:bold; color:${faltas>0?'red':'green'}">${faltas}</td><td style="font-weight:bold;">${notaObj?notaObj.nota.toFixed(1):'---'}</td></tr>`;
         });
+        document.getElementById('btn-gerar-pdf').classList.remove('hidden');
     }
+
+    function gerarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const area = document.getElementById('rel-area').value;
+        const turma = document.getElementById('rel-turma').value;
+        const mes = document.getElementById('rel-mes').options[document.getElementById('rel-mes').selectedIndex].text;
+        const bimestre = document.getElementById('rel-bimestre').value;
+
+        doc.setFontSize(16);
+        doc.setTextColor(0, 77, 64);
+        doc.text("eletIFAS - EEMTI Dragão do Mar", 14, 15);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Relatório Consolidado | Turma: ${turma}`, 14, 22);
+        doc.text(`Área: ${area} | Mês Faltas: ${mes} | Bimestre Notas: ${bimestre}`, 14, 27);
+
+        doc.autoTable({
+            html: '#tabela-consolidada',
+            startY: 35,
+            headStyles: { fillColor: [0, 77, 64] },
+            theme: 'striped',
+            styles: { fontSize: 8 }
+        });
+
+        doc.save(`Relatorio_${turma}_${area}.pdf`);
+    }
+
+    async function fazerLogout() { await _supabase.auth.signOut(); mostrarTela('tela-login'); }
 </script>
 </body>
 </html>
