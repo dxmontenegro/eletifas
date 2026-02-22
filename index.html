@@ -20,7 +20,6 @@
         .btn-link { background: none; border: none; color: var(--secondary); text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 10px; width: auto; }
         .btn-sair { background: var(--accent); color: white; padding: 8px 15px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; width: auto; position: absolute; top: 20px; right: 20px; }
         
-        /* Estilos de Relatório */
         .filtro-card { background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; text-align: left; width: 100%; box-sizing: border-box; }
         .filtro-label { font-size: 11px; font-weight: bold; color: var(--secondary); text-transform: uppercase; margin-top: 10px; display: block; }
         
@@ -67,57 +66,32 @@
         <div id="info-prof" style="font-size:12px; margin-bottom:10px; color:#666;">Professor</div>
         
         <input type="date" id="data-aula">
-        
         <select id="area">
-            <option value="">Selecione a Área...</option>
+            <option value="">Área...</option>
             <option value="GESTÃO">GESTÃO</option>
             <option value="Linguagens">Linguagens</option>
             <option value="Matemática">Matemática</option>
-            <option value="C. Natureza">Ciências da Natureza</option>
-            <option value="C. Humanas">Ciências Humanas</option>
+            <option value="C. Natureza">C. Natureza</option>
+            <option value="C. Humanas">C. Humanas</option>
         </select>
-        
         <select id="modalidade" onchange="atualizarTurmas('turma')">
             <option value="">Modalidade...</option>
             <option value="integral">Integral</option>
             <option value="noturno">Noturno</option>
         </select>
-        
-        <select id="turma"><option value="">Selecione a Turma...</option></select>
+        <select id="turma"><option value="">Turma...</option></select>
         
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-main" onclick="abrirModulo('chamada')">📝 CHAMADA</button>
             <button class="btn-outline" onclick="abrirModulo('notas')">📊 NOTAS</button>
         </div>
-        
         <button class="btn-relatorio" onclick="abrirPainelRelatorio()">🔍 RELATÓRIO CONSOLIDADO</button>
-    </div>
-
-    <div id="tela-chamada" class="hidden" style="width: 100%;">
-        <h3 id="titulo-chamada"></h3>
-        <div id="lista-alunos-chamada" style="max-height: 400px; overflow-y: auto;"></div>
-        <button class="btn-main" id="btn-salvar-freq" onclick="enviarFrequencia()">SALVAR FREQUÊNCIA</button>
-        <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-index')">VOLTAR</button>
-    </div>
-
-    <div id="tela-notas" class="hidden" style="width: 100%;">
-        <h3 id="titulo-notas">Notas</h3>
-        <select id="bimestre-selecionado">
-            <option>1º BIMESTRE</option><option>2º BIMESTRE</option>
-            <option>3º BIMESTRE</option><option>4º BIMESTRE</option>
-        </select>
-        <div class="tabela-wrapper">
-            <table id="tabela-notas-input"></table>
-        </div>
-        <button class="btn-main" id="btn-salvar-notas" onclick="enviarNotas()">SALVAR NOTAS</button>
-        <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-index')">VOLTAR</button>
     </div>
 
     <div id="tela-relatorios" class="hidden" style="width: 100%;">
         <h3 style="color: var(--primary); margin-bottom: 5px;">Relatório Consolidado</h3>
-        
         <div class="filtro-card">
-            <span class="filtro-label">1. Turma e Área</span>
+            <span class="filtro-label">1. Localização</span>
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                 <select id="rel-area" style="flex: 1.2;">
                     <option value="">Área...</option>
@@ -127,12 +101,9 @@
                     <option value="C. Natureza">C. Natureza</option>
                     <option value="C. Humanas">C. Humanas</option>
                 </select>
-                <select id="rel-turma" style="flex: 1;">
-                    <option value="">Turma...</option>
-                </select>
+                <select id="rel-turma" style="flex: 1;"><option value="">Turma...</option></select>
             </div>
-
-            <span class="filtro-label">2. Faltas (Escolha o Mês)</span>
+            <span class="filtro-label">2. Escolha o Mês (Faltas)</span>
             <select id="rel-mes" style="margin-bottom: 10px;">
                 <option value="01">Janeiro</option><option value="02" selected>Fevereiro</option>
                 <option value="03">Março</option><option value="04">Abril</option>
@@ -141,32 +112,38 @@
                 <option value="09">Setembro</option><option value="10">Outubro</option>
                 <option value="11">Novembro</option><option value="12">Dezembro</option>
             </select>
-
-            <span class="filtro-label">3. Notas (Escolha o Bimestre)</span>
+            <span class="filtro-label">3. Escolha o Bimestre (Notas)</span>
             <select id="rel-bimestre">
                 <option>1º BIMESTRE</option><option>2º BIMESTRE</option>
                 <option>3º BIMESTRE</option><option>4º BIMESTRE</option>
             </select>
         </div>
-
-        <button class="btn-main" style="background: var(--warning);" onclick="gerarRelatorioConsolidado()">
-            🔍 GERAR RELATÓRIO
-        </button>
-
+        <button class="btn-main" style="background: var(--warning);" onclick="gerarRelatorioConsolidado()">🔍 ATUALIZAR DADOS</button>
         <div class="tabela-wrapper">
             <table>
-                <thead>
-                    <tr>
-                        <th style="text-align: left;">Estudante</th>
-                        <th>Faltas</th>
-                        <th>Nota</th>
-                    </tr>
-                </thead>
+                <thead><tr><th style="text-align: left;">Estudante</th><th>Faltas</th><th>Nota</th></tr></thead>
                 <tbody id="corpo-relatorio"></tbody>
             </table>
         </div>
-        
         <button class="btn-outline" style="margin-top:20px" onclick="mostrarTela('tela-index')">VOLTAR</button>
+    </div>
+
+    <div id="tela-chamada" class="hidden" style="width: 100%;">
+        <h3 id="titulo-chamada"></h3>
+        <div id="lista-alunos-chamada" style="max-height: 350px; overflow-y: auto;"></div>
+        <button class="btn-main" id="btn-salvar-freq" onclick="enviarFrequencia()">SALVAR</button>
+        <button class="btn-outline" onclick="mostrarTela('tela-index')">VOLTAR</button>
+    </div>
+
+    <div id="tela-notas" class="hidden" style="width: 100%;">
+        <h3 id="titulo-notas">Notas</h3>
+        <select id="bimestre-selecionado">
+            <option>1º BIMESTRE</option><option>2º BIMESTRE</option>
+            <option>3º BIMESTRE</option><option>4º BIMESTRE</option>
+        </select>
+        <div class="tabela-wrapper"><table id="tabela-notas-input"></table></div>
+        <button class="btn-main" onclick="enviarNotas()">SALVAR NOTAS</button>
+        <button class="btn-outline" onclick="mostrarTela('tela-index')">VOLTAR</button>
     </div>
 
     <div class="footer-credits">D.S. MONTENEGRO - EEMTI DRAGÃO DO MAR</div>
@@ -204,7 +181,6 @@
         document.getElementById(id).classList.remove('hidden');
     }
 
-    // AUTH
     async function acaoLogin() {
         const email = document.getElementById('login-email').value;
         const senha = document.getElementById('login-senha').value;
@@ -220,19 +196,26 @@
         const senha = document.getElementById('cad-senha').value;
         const nome = document.getElementById('cad-nome').value;
         const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
-        if (error) alert(error.message); else { alert("Verifique seu e-mail para confirmar!"); mostrarTela('tela-login'); }
+        if (error) alert(error.message); else { alert("Verifique seu e-mail!"); mostrarTela('tela-login'); }
     }
 
     async function solicitarReset() {
-        const email = document.getElementById('login-email').value || prompt("Seu e-mail:");
+        const email = document.getElementById('login-email').value || prompt("Seu e-mail cadastrado:");
         if (!email) return;
-        const { error } = await _supabase.auth.resetPasswordForEmail(email);
-        alert(error ? error.message : "Link de recuperação enviado!");
+        
+        // CORREÇÃO: Apontando para o arquivo de recuperação específico
+        const linkRecuperar = window.location.origin + "/recuperar.html";
+        
+        const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: linkRecuperar,
+        });
+        
+        if (error) alert(error.message);
+        else alert("Um link de redefinição foi enviado para " + email);
     }
 
     async function fazerLogout() { await _supabase.auth.signOut(); mostrarTela('tela-login'); }
 
-    // UTILS
     function atualizarTurmas(idSelect) {
         const mod = document.getElementById('modalidade').value;
         const sel = document.getElementById(idSelect);
@@ -246,7 +229,7 @@
         const mod = document.getElementById('modalidade').value;
         const tur = document.getElementById('turma').value;
         const are = document.getElementById('area').value;
-        if(!tur || !are) return alert("Selecione os campos Área e Turma!");
+        if(!tur || !are) return alert("Selecione Área e Turma!");
         
         listaAtualAlunos = dadosEscola[mod][tur];
         if(tipo === 'chamada') {
@@ -263,8 +246,7 @@
             listaAtualAlunos.forEach((nome, i) => {
                 tabela.innerHTML += `<tr><td class="nome-aluno">${nome}</td><td><input type="number" step="0.1" id="nota-${i}" style="width:60px; text-align:center;"></td></tr>`;
             });
-            tabela.innerHTML += "</tbody>";
-            document.getElementById('titulo-notas').innerText = "Lançar Notas: " + tur;
+            document.getElementById('titulo-notas').innerText = "Notas: " + tur;
             mostrarTela('tela-notas');
         }
     }
@@ -275,10 +257,7 @@
         document.getElementById(`j-${i}`).className = status === 'J' ? 't-btn active-j' : 't-btn';
     }
 
-    // DATABASE ACTIONS
     async function enviarFrequencia() {
-        const btn = document.getElementById('btn-salvar-freq');
-        btn.disabled = true; btn.innerText = "SALVANDO...";
         const payload = listaAtualAlunos.map((nome, i) => ({
             data: document.getElementById('data-aula').value,
             professor: professorAtivo,
@@ -288,13 +267,10 @@
             status: document.getElementById(`p-${i}`).classList.contains('active-p') ? 'Presença' : (document.getElementById(`f-${i}`).classList.contains('active-f-cor') ? 'Falta' : 'Justificada')
         }));
         const { error } = await _supabase.from('frequencia').insert(payload);
-        if (error) alert(error.message); else { alert("Salvo com sucesso!"); mostrarTela('tela-index'); }
-        btn.disabled = false; btn.innerText = "SALVAR FREQUÊNCIA";
+        if (error) alert(error.message); else { alert("Frequência salva!"); mostrarTela('tela-index'); }
     }
 
     async function enviarNotas() {
-        const btn = document.getElementById('btn-salvar-notas');
-        btn.disabled = true; btn.innerText = "SALVANDO...";
         const payload = listaAtualAlunos.map((nome, i) => ({
             professor: professorAtivo,
             turma: document.getElementById('turma').value,
@@ -305,20 +281,15 @@
         }));
         const { error } = await _supabase.from('notas').insert(payload);
         if (error) alert(error.message); else { alert("Notas salvas!"); mostrarTela('tela-index'); }
-        btn.disabled = false; btn.innerText = "SALVAR NOTAS";
     }
 
-    // RELATÓRIO CONSOLIDADO (A NOVA LÓGICA)
+    // RELATÓRIO CONSOLIDADO
     function abrirPainelRelatorio() {
         const mod = document.getElementById('modalidade').value;
-        if(!mod) return alert("Selecione a Modalidade (Integral/Noturno) primeiro!");
-        
+        if(!mod) return alert("Selecione a Modalidade primeiro!");
         atualizarTurmas('rel-turma');
-        
-        // Sincroniza com o que já foi selecionado no index (por conveniência)
         document.getElementById('rel-area').value = document.getElementById('area').value;
         document.getElementById('rel-turma').value = document.getElementById('turma').value;
-        
         mostrarTela('tela-relatorios');
     }
 
@@ -329,48 +300,19 @@
         const mesRef = document.getElementById('rel-mes').value;
         const bimRef = document.getElementById('rel-bimestre').value;
 
-        if(!tur || !are) return alert("Escolha Área e Turma para o relatório!");
-
+        if(!tur || !are) return alert("Escolha Área e Turma!");
         const corpo = document.getElementById('corpo-relatorio');
-        corpo.innerHTML = "<tr><td colspan='3'>🔄 Buscando dados...</td></tr>";
+        corpo.innerHTML = "<tr><td colspan='3'>🔄 Sincronizando...</td></tr>";
 
-        try {
-            // Busca faltas da ÁREA E TURMA
-            const { data: faltasData } = await _supabase
-                .from('frequencia')
-                .select('aluno, data')
-                .eq('turma', tur)
-                .eq('area', are)
-                .eq('status', 'Falta');
+        const { data: fData } = await _supabase.from('frequencia').select('aluno, data').eq('turma', tur).eq('area', are).eq('status', 'Falta');
+        const { data: nData } = await _supabase.from('notas').select('aluno, nota').eq('turma', tur).eq('area', are).eq('bimestre', bimRef);
 
-            // Busca notas da ÁREA E TURMA E BIMESTRE
-            const { data: notasData } = await _supabase
-                .from('notas')
-                .select('aluno, nota')
-                .eq('turma', tur)
-                .eq('area', are)
-                .eq('bimestre', bimRef);
-
-            corpo.innerHTML = "";
-            const alunos = dadosEscola[mod][tur];
-
-            alunos.forEach(aluno => {
-                const totalFaltas = faltasData?.filter(f => 
-                    f.aluno === aluno && f.data.includes(`-${mesRef}-`)
-                ).length || 0;
-
-                const notaObj = notasData?.find(n => n.aluno === aluno);
-                const notaTexto = notaObj ? notaObj.nota.toFixed(1) : "---";
-
-                corpo.innerHTML += `<tr>
-                    <td class="nome-aluno">${aluno}</td>
-                    <td style="color:${totalFaltas > 0 ? 'red' : '#2e7d32'}; font-weight:bold;">${totalFaltas}</td>
-                    <td style="font-weight:bold; color:var(--primary);">${notaTexto}</td>
-                </tr>`;
-            });
-        } catch (err) {
-            alert("Erro ao carregar dados.");
-        }
+        corpo.innerHTML = "";
+        dadosEscola[mod][tur].forEach(aluno => {
+            const faltas = fData?.filter(f => f.aluno === aluno && f.data.includes(`-${mesRef}-`)).length || 0;
+            const notaObj = nData?.find(n => n.aluno === aluno);
+            corpo.innerHTML += `<tr><td class="nome-aluno">${aluno}</td><td style="font-weight:bold; color:${faltas>0?'red':'green'}">${faltas}</td><td style="font-weight:bold; color:var(--primary)">${notaObj?notaObj.nota.toFixed(1):'---'}</td></tr>`;
+        });
     }
 </script>
 </body>
