@@ -49,7 +49,8 @@
         <input type="password" id="login-senha" placeholder="Senha">
         <button class="btn-main" onclick="acaoLogin()">ENTRAR</button>
         <button class="btn-link" onclick="solicitarReset()">Esqueci minha senha</button>
-        <button class="btn-outline" style="margin-top:20px" onclick="mostrarTela('tela-cadastro')">CRIAR CONTA</button>
+        <hr style="margin:20px 0; opacity: 0.2;">
+        <button class="btn-outline" onclick="mostrarTela('tela-cadastro')">CRIAR CONTA</button>
     </div>
 
     <div id="tela-cadastro" class="hidden" style="width: 100%;">
@@ -58,7 +59,7 @@
         <input type="email" id="cad-email" placeholder="E-mail">
         <input type="password" id="cad-senha" placeholder="Senha (mín. 6 chars)">
         <button class="btn-main" onclick="acaoCadastro()">CADASTRAR</button>
-        <button class="btn-outline" style="margin-top:10px" onclick="mostrarTela('tela-login')">VOLTAR</button>
+        <button class="btn-link" onclick="mostrarTela('tela-login')">Voltar ao Login</button>
     </div>
 
     <div id="tela-index" class="hidden" style="width: 100%;">
@@ -120,7 +121,7 @@
         
         <div class="tabela-wrapper">
             <table id="tabela-consolidada">
-                <thead><tr><th style="text-align:left;">Estudante</th><th>Faltas/Mês</th><th>Nota</th></tr></thead>
+                <thead><tr><th style="text-align:left;">Estudante</th><th id="h-faltas">Faltas</th><th id="h-notas">Nota</th></tr></thead>
                 <tbody id="corpo-relatorio"></tbody>
             </table>
         </div>
@@ -194,15 +195,16 @@
         const email = document.getElementById('cad-email').value;
         const senha = document.getElementById('cad-senha').value;
         const nome = document.getElementById('cad-nome').value;
+        if(!email || !senha || !nome) return alert("Preencha tudo!");
         const { error } = await _supabase.auth.signUp({ email, password: senha, options: { data: { full_name: nome } } });
-        if (error) alert(error.message); else { alert("Verifique seu e-mail!"); mostrarTela('tela-login'); }
+        if (error) alert(error.message); else { alert("Verifique seu e-mail para confirmar!"); mostrarTela('tela-login'); }
     }
 
     async function solicitarReset() {
-        const email = document.getElementById('login-email').value || prompt("Seu e-mail:");
-        if(!email) return;
+        const email = document.getElementById('login-email').value;
+        if(!email) return alert("Digite o seu e-mail no campo de login primeiro!");
         const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/recuperar.html" });
-        if (error) alert(error.message); else alert("Link enviado!");
+        if (error) alert(error.message); else alert("Link enviado para o seu e-mail!");
     }
 
     function atualizarTurmas(idSelect) {
@@ -218,63 +220,58 @@
         const mod = document.getElementById('modalidade').value;
         const tur = document.getElementById('turma').value;
         const are = document.getElementById('area').value;
-        const dataAula = document.getElementById('data-aula').value;
         if(!tur || !are) return alert("Selecione Área e Turma!");
-        
         listaAtualAlunos = dadosEscola[mod][tur];
         
         if(tipo === 'chamada') {
-            document.getElementById('titulo-chamada').innerText = "Chamada: " + tur;
-            const container = document.getElementById('lista-alunos-chamada');
-            container.innerHTML = "Lendo dados do banco...";
-            
-            // BUSCA SE JÁ EXISTE CHAMADA NESTE DIA
-            const { data: chamExistente } = await _supabase.from('frequencia')
-                .select('aluno, status')
-                .eq('data', dataAula)
-                .eq('turma', tur)
-                .eq('area', are);
-
-            container.innerHTML = "";
-            listaAtualAlunos.forEach((nome, i) => {
-                const registro = chamExistente?.find(r => r.aluno.trim() === nome.trim());
-                let st = registro ? (registro.status === 'Presença' ? 'P' : (registro.status === 'Falta' ? 'F' : 'J')) : 'P';
-                
-                container.innerHTML += `
-                    <div class="aluno-card">
-                        <span class="nome-aluno">${nome}</span>
-                        <div style="display:flex; gap:5px;">
-                            <div class="t-btn ${st==='P'?'active-p':''}" id="p-${i}" onclick="marcar(${i},'P')">P</div>
-                            <div class="t-btn ${st==='F'?'active-f-cor':''}" id="f-${i}" onclick="marcar(${i},'F')">F</div>
-                            <div class="t-btn ${st==='J'?'active-j':''}" id="j-${i}" onclick="marcar(${i},'J')">J</div>
-                        </div>
-                    </div>`;
-            });
+            await carregarChamadaDoDia();
             mostrarTela('tela-chamada');
         } else {
-            document.getElementById('titulo-notas').innerText = "Notas: " + tur;
             await sincronizarNotasExistentes();
             mostrarTela('tela-notas');
         }
+    }
+
+    async function carregarChamadaDoDia() {
+        const dataAula = document.getElementById('data-aula').value;
+        const tur = document.getElementById('turma').value;
+        const are = document.getElementById('area').value;
+        document.getElementById('titulo-chamada').innerText = "Chamada: " + tur;
+
+        const { data: chamExistente } = await _supabase.from('frequencia')
+            .select('aluno, status').eq('data', dataAula).eq('turma', tur).eq('area', are);
+
+        const container = document.getElementById('lista-alunos-chamada');
+        container.innerHTML = "";
+        listaAtualAlunos.forEach((nome, i) => {
+            const reg = chamExistente?.find(r => r.aluno.trim() === nome.trim());
+            let st = reg ? (reg.status.includes('Pres')?'P':(reg.status.includes('Fal')?'F':'J')) : 'P';
+            container.innerHTML += `
+                <div class="aluno-card">
+                    <span class="nome-aluno">${nome}</span>
+                    <div style="display:flex; gap:5px;">
+                        <div class="t-btn ${st==='P'?'active-p':''}" id="p-${i}" onclick="marcar(${i},'P')">P</div>
+                        <div class="t-btn ${st==='F'?'active-f-cor':''}" id="f-${i}" onclick="marcar(${i},'F')">F</div>
+                        <div class="t-btn ${st==='J'?'active-j':''}" id="j-${i}" onclick="marcar(${i},'J')">J</div>
+                    </div>
+                </div>`;
+        });
     }
 
     async function sincronizarNotasExistentes() {
         const tur = document.getElementById('turma').value;
         const are = document.getElementById('area').value;
         const bim = document.getElementById('bimestre-selecionado').value;
-        
+        document.getElementById('titulo-notas').innerText = `Notas (${bim}): ${tur}`;
+
         const { data: notasDB } = await _supabase.from('notas')
-            .select('aluno, nota')
-            .eq('turma', tur)
-            .eq('area', are)
-            .eq('bimestre', bim);
+            .select('aluno, nota').eq('turma', tur).eq('area', are).eq('bimestre', bim);
 
         const tabela = document.getElementById('tabela-notas-input');
         tabela.innerHTML = "<thead><tr><th>Estudante</th><th>NOTA</th></tr></thead><tbody>";
         listaAtualAlunos.forEach((nome, i) => {
             const notaSalva = notasDB?.find(n => n.aluno.trim() === nome.trim());
-            const valor = notaSalva ? notaSalva.nota : "";
-            tabela.innerHTML += `<tr><td class="nome-aluno">${nome}</td><td><input type="number" step="0.1" id="nota-${i}" value="${valor}" style="width:60px; text-align:center;"></td></tr>`;
+            tabela.innerHTML += `<tr><td class="nome-aluno">${nome}</td><td><input type="number" step="0.1" id="nota-${i}" value="${notaSalva?notaSalva.nota:''}" style="width:60px; text-align:center;"></td></tr>`;
         });
     }
 
@@ -285,48 +282,36 @@
     }
 
     async function enviarFrequencia() {
-        const tur = document.getElementById('turma').value;
-        const are = document.getElementById('area').value;
-        const dataAula = document.getElementById('data-aula').value;
-
-        // Limpa registros anteriores do mesmo dia/turma para não duplicar
-        await _supabase.from('frequencia').delete().eq('data', dataAula).eq('turma', tur).eq('area', are);
-
         const payload = listaAtualAlunos.map((nome, i) => ({
-            data: dataAula,
+            data: document.getElementById('data-aula').value,
             professor: professorAtivo,
-            area: are,
-            turma: tur,
+            area: document.getElementById('area').value,
+            turma: document.getElementById('turma').value,
             aluno: nome.trim(),
-            status: document.getElementById(`p-${i}`).classList.contains('active-p') ? 'Presença' : (document.getElementById(`f-${i}`).classList.contains('active-f-cor') ? 'Falta' : 'Justificada')
+            status: document.getElementById(`p-${i}`).classList.contains('active-p')?'Presença':(document.getElementById(`f-${i}`).classList.contains('active-f-cor')?'Falta':'Justificada')
         }));
+        await _supabase.from('frequencia').delete().eq('data', payload[0].data).eq('turma', payload[0].turma).eq('area', payload[0].area);
         const { error } = await _supabase.from('frequencia').insert(payload);
-        if (error) alert(error.message); else { alert("Sincronizado com Sucesso!"); mostrarTela('tela-index'); }
+        if (error) alert(error.message); else { alert("Chamada Sincronizada!"); mostrarTela('tela-index'); }
     }
 
     async function enviarNotas() {
-        const tur = document.getElementById('turma').value;
-        const are = document.getElementById('area').value;
-        const bim = document.getElementById('bimestre-selecionado').value;
-
-        // Limpa notas anteriores do mesmo bimestre/turma para atualizar
-        await _supabase.from('notas').delete().eq('turma', tur).eq('area', are).eq('bimestre', bim);
-
         const payload = listaAtualAlunos.map((nome, i) => ({
             professor: professorAtivo,
-            turma: tur,
-            area: are,
-            bimestre: bim,
+            turma: document.getElementById('turma').value,
+            area: document.getElementById('area').value,
+            bimestre: document.getElementById('bimestre-selecionado').value,
             aluno: nome.trim(),
             nota: parseFloat(document.getElementById(`nota-${i}`).value) || 0
         }));
+        await _supabase.from('notas').delete().eq('turma', payload[0].turma).eq('area', payload[0].area).eq('bimestre', payload[0].bimestre);
         const { error } = await _supabase.from('notas').insert(payload);
         if (error) alert(error.message); else { alert("Notas Sincronizadas!"); mostrarTela('tela-index'); }
     }
 
     function abrirPainelRelatorio() {
         const mod = document.getElementById('modalidade').value;
-        if(!mod) return alert("Selecione a Modalidade primeiro!");
+        if(!mod) return alert("Selecione a Modalidade!");
         atualizarTurmas('rel-turma');
         document.getElementById('rel-area').value = document.getElementById('area').value;
         document.getElementById('rel-turma').value = document.getElementById('turma').value;
@@ -339,33 +324,20 @@
         const are = document.getElementById('rel-area').value;
         const mesRef = document.getElementById('rel-mes').value;
         const bimRef = document.getElementById('rel-bimestre').value;
+        const mesNome = document.getElementById('rel-mes').options[document.getElementById('rel-mes').selectedIndex].text;
 
-        if(!tur || !are) return alert("Escolha Turma e Área!");
-        const corpo = document.getElementById('corpo-relatorio');
-        corpo.innerHTML = "<tr><td colspan='3'>🔄 Sincronizando dados do Supabase...</td></tr>";
+        document.getElementById('h-faltas').innerText = `Faltas (${mesNome})`;
+        document.getElementById('h-notas').innerText = `Nota (${bimRef})`;
 
-        // Busca todas as faltas e notas daquela turma/área
-        const { data: fData } = await _supabase.from('frequencia').select('aluno, data, status').eq('turma', tur).eq('area', are);
+        const { data: fData } = await _supabase.from('frequencia').select('aluno, status, data').eq('turma', tur).eq('area', are);
         const { data: nData } = await _supabase.from('notas').select('aluno, nota').eq('turma', tur).eq('area', are).eq('bimestre', bimRef);
 
+        const corpo = document.getElementById('corpo-relatorio');
         corpo.innerHTML = "";
         dadosEscola[mod][tur].forEach(aluno => {
-            // Conta faltas apenas do mês selecionado
-            const faltasNoMes = fData?.filter(f => 
-                f.aluno.trim() === aluno.trim() && 
-                f.data.includes(`-${mesRef}-`) && 
-                f.status === 'Falta'
-            ).length || 0;
-
+            const faltas = fData?.filter(f => f.aluno.trim() === aluno.trim() && f.data.includes(`-${mesRef}-`) && f.status === 'Falta').length || 0;
             const notaObj = nData?.find(n => n.aluno.trim() === aluno.trim());
-            const notaExibir = notaObj ? notaObj.nota.toFixed(1) : '---';
-
-            corpo.innerHTML += `
-                <tr>
-                    <td class="nome-aluno">${aluno}</td>
-                    <td style="font-weight:bold; color:${faltasNoMes > 0 ? 'red' : 'green'}">${faltasNoMes}</td>
-                    <td style="font-weight:bold;">${notaExibir}</td>
-                </tr>`;
+            corpo.innerHTML += `<tr><td class="nome-aluno">${aluno}</td><td style="font-weight:bold; color:${faltas>0?'red':'green'}">${faltas}</td><td style="font-weight:bold;">${notaObj?notaObj.nota.toFixed(1):'---'}</td></tr>`;
         });
         document.getElementById('btn-gerar-pdf').classList.remove('hidden');
     }
@@ -373,9 +345,31 @@
     function gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text(`Relatório Consolidado: ${document.getElementById('rel-turma').value}`, 14, 15);
-        doc.autoTable({ html: '#tabela-consolidada', startY: 25 });
-        doc.save(`Relatorio_${document.getElementById('rel-turma').value}.pdf`);
+        const tur = document.getElementById('rel-turma').value;
+        const mesNome = document.getElementById('rel-mes').options[document.getElementById('rel-mes').selectedIndex].text;
+        const bim = document.getElementById('rel-bimestre').value;
+
+        doc.setFontSize(18);
+        doc.setTextColor(0, 77, 64);
+        doc.text("eletIFAS - EEMTI DRAGÃO DO MAR", 14, 20);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(50);
+        doc.text(`RELATÓRIO: ${tur} | Faltas: ${mesNome} | Notas: ${bim}`, 14, 30);
+        doc.text(`Professor(a): ${professorAtivo}`, 14, 37);
+
+        doc.autoTable({
+            startY: 45,
+            head: [['Estudante', `Faltas (${mesNome})`, `Média (${bim})`]],
+            body: Array.from(document.querySelectorAll("#corpo-relatorio tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText)),
+            headStyles: { fillColor: [0, 77, 64] },
+            didParseCell: function(data) {
+                if (data.column.index === 1 && data.cell.section === 'body' && parseInt(data.cell.raw) > 0) {
+                    data.cell.styles.textColor = [198, 40, 40];
+                }
+            }
+        });
+        doc.save(`Relatorio_${tur}_${mesNome}.pdf`);
     }
 
     async function fazerLogout() { await _supabase.auth.signOut(); mostrarTela('tela-login'); }
