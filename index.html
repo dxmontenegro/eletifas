@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EEMTI DRAGÃO DO MAR - Notas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #004d40; --accent: #00796b; --bg: #f1f8f7; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .container { flex: 1; padding: 20px; max-width: 400px; margin: 20px auto; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .logo { width: 80px; margin-bottom: 10px; }
+        h1 { color: var(--primary); font-size: 20px; margin: 5px 0; }
+        h2 { color: var(--accent); font-size: 14px; margin-bottom: 25px; }
+
+        input, select { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; margin-top: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        
+        .btn-main { background: var(--primary); color: white; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-link { background: none; color: var(--accent); font-size: 13px; text-decoration: underline; margin-top: 15px; }
+
+        .turmas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; text-align: left; }
+        .coluna h4 { color: var(--primary); font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 8px; }
+        .coluna label { display: flex; align-items: center; font-size: 13px; margin: 6px 0; cursor: pointer; }
+        
+        footer { background: #fff; padding: 15px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #eee; position: fixed; bottom: 0; width: 100%; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="imagem1.png" class="logo">
+    <h1>EEMTI DRAGÃO DO MAR</h1>
+    <h2>NOTAS - Aperfeiçoamentos</h2>
+
+    <div id="loginBox">
+        <input id="email" type="email" placeholder="E-mail">
+        <input id="senha" type="password" placeholder="Senha">
+        <button class="btn-main" onclick="login()">ENTRAR</button>
+        <button class="btn-link" onclick="resetSenha()">Esqueci minha senha</button>
+        <button style="background:#eee; color:#333; margin-top:20px;" onclick="mostrarCadastro()">CRIAR CONTA</button>
+    </div>
+
+    <div id="cadastroBox" class="hidden">
+        <h3>Criar Conta</h3>
+        <input id="cad-nome" placeholder="Nome completo">
+        <input id="cad-email" type="email" placeholder="E-mail">
+        <input id="cad-senha" type="password" placeholder="Senha">
+        <select id="cad-componente">
+            <option value="">Selecione o componente</option>
+            <option>Matemática</option><option>Física</option><option>História</option>
+        </select>
+        <div id="cad-turmas" class="turmas-grid">
+            <div class="coluna"><h4>1º ANO</h4>
+                <label><input type="checkbox" value="1º A"> 1º A</label>
+            </div>
+        </div>
+        <button class="btn-main" onclick="cadastrar()">CADASTRAR</button>
+        <button class="btn-link" onclick="voltarLogin()">Voltar ao Login</button>
+    </div>
+</div>
+
+<footer style="margin-bottom: 50px;">
+    EEMTI DRAGÃO DO MAR - <span style="font-weight:bold;">©</span> By D.S.Montenegro
+</footer>
+
+<script>
+    // --- INSIRA SUAS CREDENCIAIS AQUI ---
+    const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0';
+    // -------------------------------------
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    sb.auth.getSession().then(({data})=>{ if(data.session) window.location.href = "painel.html"; });
+
+    async function login(){
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+        if(error) alert(error.message); else window.location.href = "painel.html";
+    }
+
+    function mostrarCadastro(){ document.getElementById('loginBox').classList.add('hidden'); document.getElementById('cadastroBox').classList.remove('hidden'); }
+    function voltarLogin(){ document.getElementById('cadastroBox').classList.add('hidden'); document.getElementById('loginBox').classList.remove('hidden'); }
+</script>
+
+</body>
+</html>
