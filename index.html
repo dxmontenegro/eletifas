@@ -3,43 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EEMTI DRAGÃO DO MAR - Notas</title>
+    <title>EEMTI DRAGÃO DO MAR - Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #004d40; --accent: #00796b; --bg: #f1f8f7; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
-        
-        .container { 
-            padding: 20px; 
-            max-width: 400px; 
-            margin: 20px auto; 
-            background: white; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            text-align: center; /* Garante centralização interna */
+        :root { --primary:#004d40; --accent:#00796b; --bg:#f1f8f7; }
+        * { box-sizing:border-box; }
+        body {
+            font-family:'Segoe UI', Arial, sans-serif;
+            background:var(--bg);
+            margin:0;
+            padding:15px;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
         }
-        
-        .logo { width: 80px; margin: 0 auto 10px auto; display: block; }
-        h1 { color: var(--primary); font-size: 20px; margin: 5px 0; }
-        h2 { color: var(--accent); font-size: 14px; margin-bottom: 25px; }
-
-        input, select { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; margin-top: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        
-        .btn-main { background: var(--primary); color: white; }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-link { background: none; color: var(--accent); font-size: 13px; text-decoration: underline; margin-top: 15px; }
-
-        .turmas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; text-align: left; }
-        .coluna h4 { color: var(--primary); font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 8px; }
-        .coluna label { display: flex; align-items: center; font-size: 13px; margin: 6px 0; cursor: pointer; }
-        
-        footer { padding: 20px; text-align: center; font-size: 11px; color: #666; margin-top: auto; }
-        .hidden { display: none; }
+        .container {
+            background:#fff;
+            padding:22px;
+            border-radius:16px;
+            box-shadow:0 5px 15px rgba(0,0,0,.05);
+            width:100%;
+            max-width:500px;
+            margin:auto;
+            text-align:center;
+        }
+        .logo { width:90px; height:auto; display:block; margin:0 auto 10px; }
+        h1 { color:var(--primary); margin:6px 0 0; font-size:20px; line-height:1.2; }
+        h2 { color:var(--accent); margin:6px 0 22px; font-size:14px; font-weight:600; }
+        input, select, button {
+            width:100%;
+            padding:13px;
+            margin-top:10px;
+            border-radius:10px;
+            border:1px solid #ddd;
+            font-size:16px;
+            font-family:inherit;
+        }
+        button { border:none; cursor:pointer; font-weight:600; transition:.2s; }
+        button:active { transform:scale(.99); }
+        .btn-main { background:var(--primary); color:white; }
+        .btn-link { background:transparent; color:var(--accent); text-decoration:underline; font-size:13px; padding:8px 0; }
+        .btn-secondary { background:#eee; color:#333; }
+        .hidden { display:none; }
+        .turmas-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:12px; text-align:left; }
+        .coluna { background:#fafafa; border:1px solid #eee; border-radius:10px; padding:10px; }
+        .coluna h4 { margin:0 0 8px; color:var(--primary); font-size:12px; border-bottom:1px solid #eaeaea; padding-bottom:6px; }
+        .coluna label { display:flex; align-items:center; gap:8px; margin:7px 0; font-size:13px; cursor:pointer; user-select:none; }
+        .coluna input[type="checkbox"] { width:18px; height:18px; margin:0; flex:0 0 auto; }
+        .small-note { font-size:12px; color:#666; margin-top:8px; line-height:1.4; }
+        footer { text-align:center; font-size:11px; color:#666; padding:18px 0 4px; }
+        @media (max-width:480px) {
+            .container { padding:18px; }
+            h1 { font-size:18px; }
+            h2 { font-size:13px; }
+            .turmas-grid { grid-template-columns:1fr; }
+            input, select, button { font-size:15px; }
+        }
     </style>
 </head>
 <body>
-
 <div class="container">
     <img src="imagem1.png" class="logo" alt="Logo">
     <h1>EEMTI DRAGÃO DO MAR</h1>
@@ -50,23 +72,69 @@
         <input id="senha" type="password" placeholder="Senha">
         <button class="btn-main" onclick="login()">ENTRAR</button>
         <button class="btn-link" onclick="resetSenha()">Esqueci minha senha</button>
-        <button style="background:#eee; color:#333; margin-top:20px;" onclick="mostrarCadastro()">CRIAR CONTA</button>
+        <button class="btn-secondary" style="margin-top:18px;" onclick="mostrarCadastro()">CRIAR CONTA</button>
     </div>
 
     <div id="cadastroBox" class="hidden">
-        <h3>Criar Conta</h3>
+        <h3 style="margin:0 0 10px;color:var(--primary);">Criar Conta</h3>
+
         <input id="cad-nome" placeholder="Nome completo">
         <input id="cad-email" type="email" placeholder="E-mail">
         <input id="cad-senha" type="password" placeholder="Senha">
+
         <select id="cad-componente">
             <option value="">Selecione o componente</option>
-            <option>Matemática</option><option>Física</option><option>História</option>
+            <option>Aperfeiçoamento em Matemática</option>
+            <option>Aperfeiçoamento em Física</option>
+            <option>Aperfeiçoamento em História</option>
+            <option>Aperfeiçoamento em Filosofia</option>
+            <option>Aperfeiçoamento em Língua Portuguesa</option>
+            <option>Aperfeiçoamento em Arte</option>
+            <option>Aperfeiçoamento em Ed. Física</option>
+            <option>Aperfeiçoamento em Espanhol</option>
+            <option>Aperfeiçoamento em Linguagens e Códigos</option>
+            <option>Aperfeiçoamento em C. Natureza</option>
         </select>
+
+        <div class="small-note">Selecione uma ou mais turmas que esse professor poderá acessar.</div>
+
         <div id="cad-turmas" class="turmas-grid">
-            <div class="coluna"><h4>1º ANO</h4>
+            <div class="coluna">
+                <h4>1º ANO - INTEGRAL</h4>
                 <label><input type="checkbox" value="1º A"> 1º A</label>
+                <label><input type="checkbox" value="1º B"> 1º B</label>
+                <label><input type="checkbox" value="1º C"> 1º C</label>
+            </div>
+
+            <div class="coluna">
+                <h4>2º ANO - INTEGRAL</h4>
+                <label><input type="checkbox" value="2º A"> 2º A</label>
+                <label><input type="checkbox" value="2º B"> 2º B</label>
+                <label><input type="checkbox" value="2º C"> 2º C</label>
+            </div>
+
+            <div class="coluna">
+                <h4>3º ANO - INTEGRAL</h4>
+                <label><input type="checkbox" value="3º A"> 3º A</label>
+                <label><input type="checkbox" value="3º B"> 3º B</label>
+            </div>
+
+            <div class="coluna">
+                <h4>1º ANO - NOTURNO</h4>
+                <label><input type="checkbox" value="1º D"> 1º D</label>
+            </div>
+
+            <div class="coluna">
+                <h4>2º ANO - NOTURNO</h4>
+                <label><input type="checkbox" value="2º D"> 2º D</label>
+            </div>
+
+            <div class="coluna">
+                <h4>3º ANO - NOTURNO</h4>
+                <label><input type="checkbox" value="3º C"> 3º C</label>
             </div>
         </div>
+
         <button class="btn-main" onclick="cadastrar()">CADASTRAR</button>
         <button class="btn-link" onclick="voltarLogin()">Voltar ao Login</button>
     </div>
@@ -77,25 +145,70 @@
 </footer>
 
 <script>
-    const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0';
+    const sb = window.supabase.createClient(
+        'https://bdjqajzhlkdfagdfknmh.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0'
+    );
 
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb.auth.getSession().then(({ data }) => {
+        if (data.session) window.location.href = 'painel.html';
+    });
 
-    sb.auth.getSession().then(({data})=>{ if(data.session) window.location.href = "painel.html"; });
-
-    async function login(){
-        const email = document.getElementById('email').value;
+    async function login() {
+        const email = document.getElementById('email').value.trim();
         const senha = document.getElementById('senha').value;
         const { error } = await sb.auth.signInWithPassword({ email, password: senha });
-        if(error) alert(error.message); else window.location.href = "painel.html";
+        if (error) alert(error.message);
+        else window.location.href = 'painel.html';
     }
 
-    function mostrarCadastro(){ document.getElementById('loginBox').classList.add('hidden'); document.getElementById('cadastroBox').classList.remove('hidden'); }
-    function voltarLogin(){ document.getElementById('cadastroBox').classList.add('hidden'); document.getElementById('loginBox').classList.remove('hidden'); }
-    function resetSenha(){ alert("Funcionalidade em breve."); }
-    function cadastrar(){ alert("Cadastro em desenvolvimento."); }
-</script>
+    function mostrarCadastro() {
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('cadastroBox').classList.remove('hidden');
+    }
 
+    function voltarLogin() {
+        document.getElementById('cadastroBox').classList.add('hidden');
+        document.getElementById('loginBox').classList.remove('hidden');
+    }
+
+    function resetSenha() {
+        alert('Funcionalidade em breve.');
+    }
+
+    async function cadastrar() {
+        const nome = document.getElementById('cad-nome').value.trim();
+        const email = document.getElementById('cad-email').value.trim();
+        const senha = document.getElementById('cad-senha').value;
+        const componente = document.getElementById('cad-componente').value;
+        const turmas = [...document.querySelectorAll('#cad-turmas input[type="checkbox"]:checked')].map(cb => cb.value);
+
+        if (!nome || !email || !senha || !componente || turmas.length === 0) {
+            alert('Preencha todos os campos e selecione pelo menos uma turma.');
+            return;
+        }
+
+        const { error } = await sb.auth.signUp({ email, password: senha });
+        if (error) {
+            alert(error.message);
+            return;
+        }
+
+        const { error: dbError } = await sb.from('professores').insert([{
+            email,
+            nome,
+            componente,
+            turmas
+        }]);
+
+        if (dbError) {
+            alert('Conta criada, mas ocorreu erro ao salvar no banco: ' + dbError.message);
+            return;
+        }
+
+        alert('Cadastro realizado com sucesso!');
+        voltarLogin();
+    }
+</script>
 </body>
 </html>
