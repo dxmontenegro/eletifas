@@ -105,19 +105,37 @@
         tabela.innerHTML = html;
     }
 
-    async function salvar() {
-        if(isAdmin) return;
-        const emailUser = (await sb.auth.getUser()).data.user.email;
-        const linhas = tabela.querySelectorAll("tr");
-        let dados = [];
-        linhas.forEach((linha, i) => {
-            if(i === 0) return;
-            const presente = linha.children[1].children[0].checked;
-            dados.push({ professor: emailUser, area: componenteProfessor, turma: turma.value, data: data.value, aluno: linha.children[0].innerText, presente: presente, status: presente ? "Presença" : "Falta" });
+async function salvar() {
+    if (isAdmin) return;
+
+    const emailUser = (await sb.auth.getUser()).data.user.email;
+    const linhas = tabela.querySelectorAll("tr");
+    let dados = [];
+
+    linhas.forEach((linha, i) => {
+        if (i === 0) return;
+        const presente = linha.children[1].children[0].checked;
+
+        dados.push({
+            professor: emailUser,
+            area: componenteProfessor,
+            turma: turma.value,
+            data: data.value,
+            aluno: linha.children[0].innerText,
+            presente: presente,
+            status: presente ? "Presença" : "Falta"
         });
-        const { error } = await sb.from('frequencia').insert(dados);
-        alert(error ? "Erro: " + error.message : "Frequência salva!");
-    }
+    });
+
+    const { error } = await sb
+        .from('frequencia')
+        .upsert(dados, {
+            onConflict: 'professor,area,turma,data,aluno'
+        });
+
+    alert(error ? "Erro: " + error.message : "Frequência salva e atualizada!");
+}
+
 
     function voltar() { window.location.href = "painel.html"; }
 </script>
