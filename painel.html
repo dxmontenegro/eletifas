@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel - EEMTI DRAGÃO DO MAR</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f8f7; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        .box { background: white; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 350px; box-sizing: border-box; }
+        
+        h2 { color: #004d40; font-size: 18px; margin-bottom: 25px; }
+        
+        button { display: block; width: 100%; margin: 15px auto; padding: 16px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        
+        .btn-main { background: #004d40; color: white; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-logout { background: #f8f9fa; color: #d32f2f; border: 1px solid #ffcdd2; margin-top: 30px; }
+        
+        footer { margin-top: 40px; text-align: center; font-size: 11px; color: #666; width: 100%; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Escolha o módulo</h2>
+    
+    <button class="btn-main" onclick="window.location='paineldenotas.html'">Lançar Notas</button>
+    <button class="btn-main" onclick="window.location='painelfrequencia.html'">Lançar Frequência</button>
+    
+    <button class="btn-logout" onclick="logout()">Sair do Sistema</button>
+</div>
+
+<footer>
+    EEMTI DRAGÃO DO MAR - <span style="font-weight:bold;">©</span> By D.S.Montenegro
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // --- INSIRA SUAS CREDENCIAIS AQUI ---
+   const SUPABASE_URL = 'https://bdjqajzhlkdfagdfknmh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0';
+    // -------------------------------------
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function logout(){
+        await sb.auth.signOut();
+        window.location.href = "index.html";
+    }
+</script>
+
+</body>
+</html>
