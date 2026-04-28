@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Frequência - EEMTI DRAGÃO DO MAR</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #004d40; --accent: #00796b; --bg: #f1f8f7; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .box { background: white; padding: 25px; border-radius: 16px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; max-width: 500px; margin: auto; }
+        h2 { color: var(--primary); margin-bottom: 15px; font-size: 20px; }
+        .info { font-size: 13px; color: #555; margin-bottom: 5px; }
+        select, input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: var(--primary); color: white; font-weight: 600; cursor: pointer; border: none; }
+        .btn-sec { background: #ccc; color: #000; margin-top: 10px; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 13px; }
+        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+        .nome { font-weight: 500; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        footer { margin-top: 40px; text-align: center; font-size: 11px; color: #666; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Controle de Frequência</h2>
+    <div class="info" id="infoUser"></div>
+    <div class="info" id="infoComp"></div>
+
+    <select id="modalidade" onchange="atualizarTurmas()">
+        <option value="">Modalidade...</option>
+        <option value="integral">Integral</option>
+        <option value="noturno">Noturno</option>
+    </select>
+    <select id="turma" onchange="carregar()"></select>
+    <select id="componenteSelect" style="display:none" onchange="carregar()">
+        <option value="">Selecione o componente</option>
+        <option>Aperfeiçoamento em Matemática</option><option>Aperfeiçoamento em Física</option>
+        <option>Aperfeiçoamento em História</option><option>Aperfeiçoamento em Filosofia</option>
+        <option>Aperfeiçoamento em Língua Portuguesa</option><option>Aperfeiçoamento em Arte</option>
+        <option>Aperfeiçoamento em Ed. Física</option><option>Aperfeiçoamento em Espanhol</option>
+        <option>Aperfeiçoamento em Linguagens e Códigos</option><option>Aperfeiçoamento em C. Natureza</option>
+    </select>
+    <input type="date" id="data" onchange="carregar()">
+
+    <table id="tabela"></table>
+
+    <button id="btnSalvar" onclick="salvar()">Salvar Frequência</button>
+    <button class="btn-sec" onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<footer>
+    EEMTI DRAGÃO DO MAR - <span style="font-weight:bold;">©</span> By D.S.Montenegro
+</footer>
+
+<script>
+    const sb = window.supabase.createClient('https://bdjqajzhlkdfagdfknmh.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0');
+
+    let turmasProfessor = [], componenteProfessor = "", nomeProfessor = "", isAdmin = false;
+    const dadosEscola = { integral: { "1º A": ["ANA BEATRIZ CABRAL DA SILVA", "ANA BEATRIZ DANTAS BERNARDO", "ANA BEATRIZ OLIVEIRA SERRA", "ANA CAROLYNA CARNEIRO SOUSA", "ANA LUIZA DE SOUSA LOURENCO", "DEBORA IOLANDA GOMES DA SILVA", "DEVIDSON RAMOS DE OLIVEIRA", "DIOGO SANTOS FERREIRA", "FERNANDO ERLANIO DE OLIVEIRA AGUIAR", "JESSICA DEBORA SILVA OLIVEIRA", "JOAO GABRIEL SOUSA RODRIGUES", "JOAO LUCAS SOUSA DA COSTA", "JORGE MIGUEL ARAUJO LOPES", "JULIA EVELLEN PAIVA DA SILVA", "KAILANY DA SILVA COSTA", "KAROLLAINY OLIVEIRA SOUSA", "KAUA ARAUJO MENDES", "LUIS GUSTAVO COSTA FERNANDES", "LUNNA DE LIMA ABREU", "MARA LIDIA FERREIRA DE FARIAS", "MARIA ALICIA CARVALHO NUNES", "MARIA CLARA DA CRUZ SILVA", "MARIA EDUARDA BERNARDO SOUZA", "MARIA ISABEL ALVES PEREIRA", "MARYA EDUARDA DOS SANTOS LOBAO", "MOISES ARCANJO FLOR FERREIRA", "RAYSSA DA SILVA RODRIGUES", "RONNALD LOPES DE OLIVEIRA", "RYAN DA SILVA COSTA", "SAMUEL SANTIAGO DE LIMA", "SAMYRA MARIA CAVALCANTE CRUZ", "THALES GABRIEL FERREIRA DE LIMA", "TIAGO TAVARES SOUZA", "YANN FERREIRA SILVA COELHO", "YASMIN SILVA COUTO"], "1º B": ["ALESSANDRO DOS SANTOS RODRIGUES", "ANA ESTER DA SILVA FELIX", "ANA RUTY PEREIRA DOS SANTOS", "ARIELE DE CARVALHO GONDIM BARBOSA LEMOS", "BERNARDO BATISTA LIMA", "BRENO HENRIQUE CASTRO VALENTIM", "EDUARDO SOUSA GAMA", "ESTER VIRGINIO MARIANO", "FILIPE BRAS DE PAULA", "FRANCISCO EDILSON OLIVEIRA ANDRADE", "GABRIELA RODRIGUES DOS SANTOS", "GUSTAVO NERY TEIXEIRA DE PAULA", "IAN DE ABREU VIANA", "JOSE MARLEY MENDES DOS SANTOS", "LARA WINY SOUSA DA SILVA", "LOUISE ANDRYA FERREIRA DE SOUSA LIMA", "LUARA KALYNE DA CONCEICAO SARAIVA", "LUDMILA LOPES EVANGELISTA", "MARCOS VINICIUS ARAUJO LIMA ALVES", "MARIA BEATRIZ TELES GUEDES DE SOUSA", "MARIA EDUARDA MARTINS DANTAS", "MARIA GABRIELA DA SILVA MACEDO ARAUJO", "MARIA MANUELA FERREIRA LIMA", "MARIA VITORIA SANTOS DE LIMA", "MAYRA ALEXANDRA DOS SANTOS CARMO", "MIGUEL ANTONIO LOPES DA CUNHA", "NATHALLY ELOAR DO SANTOS HENRIQUE DA SILVA", "PAULO LUCAS VIEIRA DOS SANTOS", "PEDRO LUAN OLIVEIRA SANTOS", "PEDRO LUCAS ARAUJO BRAUNA", "RHUAN DE BRITO RODRIGUES", "RODRIGO OLIVEIRA DA SILVA", "SAULO LUKA PESSOA TABOSA"], "1º C": ["ALICE FIRMINO DOS SANTOS SILVEIRA", "ANA KETHELLY AGUIAR DE SOUZA", "ANA LIVIA DA CRUZ BORGES", "ANA VITORIA SOUSA DE LIMA", "BRIAN VALENTE DOS SANTOS", "CAIO VICTOR SALES DO NASCIMENTO", "CARLOS YUDI SILVA DO NASCIMENTO", "CECILIA BORGES OLIVEIRA", "DALILA SIMONE DOS SANTOS", "ELNATAN DOS REIS RODRIGUES", "EMANUEL ARAÚJO MANSUR", "ERICK SANTOS ARAUJO", "FABIANO SANTIAGO DOS ANJOS", "FRANCISCO MANOEL DOS ANJOS DA SILVA", "GABRIEL CASTRO DE SOUSA", "HELLEN MARIA DO NASCIMENTO BERNARDO", "ISABELE ROCHA FERREIRA", "JOAO LEVI GOMES VIEIRA", "JOAO PEDRO LIMA SOARES", "JOAO VITOR DE PAULO DO NASCIMENTO", "JULIA NICOLY DE LIMA", "KEVEN GABRIEL DE SOUSA RIBEIRO", "LUCY HELEONORA DA COSTA GOMES", "LUIZ OTAVIO DA SILVA MOREIRA", "MARIA EDUARDA BEZERRA SANTOS", "MARIA EDUARDA RODRIGUES GUIMARAES", "MARIA LUIZA DA SILVA FRANCA", "MARIA VITORIA DA SILVA DO NASCIMENTO", "PEDRO GABRIEL TABOSA ROSENO", "SAMUEL DO VALE DE OLIVEIRA", "SAMUEL FREITAS ALVES", "SARAH KELLY FERREIRA SOUSA", "VITÓRIA NYCOLE LOPES DE OLIVEIRA", "YAN MIQUEIAS OLIVEIRA ALVES", "YASMIN PESSOA DA ROCHA"], "2º A": ["ANA LIVIA DOS SANTOS BARATA", "ANTONIO VINICIUS ROCHA FERREIRA", "BRYANN VICTOR PEREIRA XAVIER", "CARLA SAMANTHA DE OLIVEIRA ASSARE", "CLARISSE YASMIN DA SILVA EVARISTO", "DEBORA CRISTINA ALVES DOS SANTOS", "EMANUELLE HIGINO DE SOUZA", "ENZO DOS SANTOS MONTEIRO", "ERIK DOUGLAS LIMA MARTINS", "GABRIEL SILVEIRA DE SANTANA", "GUILHERMY KAUA DA SILVA FERREIRA", "IRVINA AGATA DA SILVA FRANCA", "JENYFER RAISSA DO NASCIMENTO COSTA", "JESSIANE RIBEIRO CARNEIRO", "KAUA GUILHERME CRUZ SILVA", "KELRIANE BARROS DA COSTA", "LUIZ EDUARDO LOURENCO FIGUEIRA MACEDO", "MARCOS KAYRON ALBUQUERQUE ALVES", "MARIA IONARA FERREIRA DOS SANTOS", "MARIA SARAH LOPES DE BRITO", "MAYCON DO NASCIMENTO PEREIRA", "NARA LAUANE CARNEIRO FERREIRA", "PEDRO GABRIEL MOREIRA DA COSTA", "PEDRO HENRIQUE SOUSA MARTINS DA SILVA", "PEDRO VINÍCIUS OLIVEIRA DOS ANGELOS", "RYAN BARBOSA DE SOUSA", "SUELEN CRISTINA FARIAS LEAL", "VITORIA SANTOS DE OLIVEIRA SILVA", "WELLY DE CASTRO BULHOES", "YURI CAETANO CARVALHO"], "2º B": ["ANA BRUNA FELIX ACARCIO PEREIRA", "ANA LAYS DE ALMEIDA", "ANA LIVIA VASCONCELOS LOBO ROCHA", "ANA VITORIA DE SOUZA AMARAL", "CALEBE DA SILVA SANTOS", "CECILIA SILVA OLIVEIRA", "DEBORAH CARVALHO BEZERRA", "GLENDA VITORIA GOMES DE LIVIA", "GUILHERME BARBOSA LOURENCO", "JOAO PIERRY ALVES DE OLIVEIRA", "JOEL BARBOSA EVANGELISTA", "KAROLYNNE DO NASCIMENTO V. C. ARAGÃO", "KERISSON ANDRADE AMORIM", "KEYLLON VITORIO DE SOUZA AMBE", "LUANA FONSECA MONTEIRO", "LUCAS OLIVEIRA DE SOUZA", "LUIS HENRIQUE ALVES DE OLIVEIRA", "MARCOS VINICIUS SILVANO BATISTA", "MARIA EDUARDA SANTANA RODRIGUES", "MARIA HELLEN SOUSA BARROS", "MIGUEL RONEY PEREIRA DUARTE", "MOYSHES GOMES DO NASCIMENTO", "NICOLAS DE FREITAS LOPES", "NYKOLAS PEREIRA RIOS", "PEDRO RIBEIRO HOLANDA", "RIHANHA FERREIRA DOS REIS", "RYANBERG FERREIRA BARBOSA DA SILVA", "VARVARA OZEROVA", "VICTOR GABRIEL LIMA DE SOUZA", "YAN DHARLLYS MARTINS DO NASCIMENTO"], "2º C": ["AMANDA PEREIRA DA PENHA", "ANA JULIA FERNANDES DE SOUSA", "ANA LARA CORREIA LOPES", "ARTHUR CARLOS DE ALMEIDA MOTTA", "ARTHUR MONTENEGRO VENANCIO", "BRENDA PEREIRA LIMA", "ELLEN CRISTINA SILVA DOS SANTOS", "EZEQUIEL GOMES DE SENA", "FRANCISCA SAMILLY DA SILVA ARAUJO", "GABRIEL ARAUJO SILVA", "GABRIEL ONOFRE DE SOUSA MACIEL", "HELOARA MORAES VERCOSA", "JOSE ELIVELTON OLIVEIRA MAGALHAES", "KAUA EMERSON LIMA MENEZES", "KAYANNE RODRIGUES TEIXEIRA", "KENCIANE OLIVEIRA DE SOUSA", "MARIA ALICE RIBEIRO DA SILVA", "MARIA APARECIDA SILVA DE SOUZA", "MARIA EDUARDA CARIOLANO DE ARAUJO", "MARIA FERNANDA SILVA DOS SANTOS FELIX", "MARIA LAYANE MONTEIRO DE LIMA", "MIGUEL ICARO DO NASCIMENTO TEIXEIRA DA SILVA", "MIGUEL VASCONCELOS DINIZ", "MIRELLA DE PAULA NASCIMENTO", "PEDRO ADRIAN DA SILVA", "PEDRO ITALO MAIA SOUSA", "PEDRO LUCAS FEIJÓ", "REBECA DIOGO SILVA MONTENEGRO", "SAMYLLY RAYSSA DIAS ARAUJO", "SUZANNA RAFAELLE COSTA S. DO NASCIMENTO", "YURI ANDRADE DA MATA"], "3º A": ["ADRYAN DE PAULA ANDRADE", "ALISSON COSTA DA SILVA", "ANA BEATRIZ FURTADO TAVARES", "ANA CAROLINE AIRES PEREIRA", "ARIANI DA GUIA DOS SANTOS", "BRUNO KENNEDY SOUSA SOARES", "CAMILY DE OLIVEIRA COSTA", "DANIELA CASTRO DE SOUZA", "DIOGO ADRIAN TAVARES DE LIMA", "EMANUELLE FERREIRA DE SOUSA", "EMANUELLY DE CASSIA PINTO QUEIROZ", "EMILY SOARES CUNHA GOMES", "FERNANDO ANTONIO MOTA DE SOUSA FILHO", "ISABELLA ALVES PEREIRA", "IZABELLE CARVOLHO SILVA", "JEFERSON LAZANO MENDES DINIZ", "JOAO NICOLAS DO NASCIMENTO", "JOÃO PEDRO SILVA DAS CHAGAS", "KAYLA VITORIA MARQUES CAMPOS", "KELTON MATEUS DE SOUSA NEVES", "LARA RAYELE BORGES GOES", "LAYS NAYRA GOMES FERREIRA", "LETICIA BARBOSA TEIXEIRA", "LIAN DE SOUSA FERREIRA", "LUIDY RAYAN PEREIRA DA SILVA", "LUIS DANIEL ALMEIDA DA SILVA", "LUIZ GUSTAVO SANTANA DA MATA", "MARIA FERNANDA SILVA SOUSA", "PEDRO ERICK BEZERRA DE LIMA", "PEDRO LUCAS DA SILVA GOMES", "PEDRO LUCAS LOPES MATIAS", "SILAS DOS SANTOS ALMEIDA", "YARLEI FERREIRA LOBAO", "YASMIM LOURENCO DE FREITAS"], "3º B": ["ANA ALICE RODRIGUES DA SILVA", "ANA CLARA DOS SANTOS DE PAULA", "ANA KARINE ALBERTO SILVA", "ANA LUIZA ALVES DE OLIVEIRA", "ANDRE HENRIQUE DE SOUZA CAMPOS", "ANGELA PATRICIA OLIVEIRA FRANCA LIMA", "ANTONIA VANESSA LIMA DA MATA", "CARLOS MISAEL DA SILVA FELIX", "EDUARDA GABRIELE FERREIRA DOS SANTOS", "FLÁVIO NOGUEIRA FILHO", "FRANCISCO HUGO DA SILVA ARAUJO", "GABRIEL VITOR ABREU MORAES", "GUDSON MACEDO SANTANA", "ISAAC ASSUNCAO RODRIGUES DE MATOS", "JOAO MANOEL DIONIZIO DA SILVA", "JOAO VICTOR SOUSA DA COSTA", "JOSE ADRIEL DE SOUSA BERNARDO", "JOSE RENAN ARAUJO LIMA CASTRO", "KATHERINE LEITE BRAGA", "KERLLON PAZ DA SILVA", "LARA GABRIELLE RODRIGUES MORAIS", "LETICIA HONORATO ALVES", "LUCAS DOS SANTOS MATOKANOVIC", "MARCIO MARLEY RIBEIRO DA SILVA", "MARCUS YUAN PACHECO DE SOUSA", "MARIA CLARA CALDAS RODRIGUES", "MARIA EVELYN DA SILVA SABINO", "ROMAN DUBOVIK", "RYAN PEREIRA DE SOUSA", "RYANNA FERREIRA RODRIGUES", "SAMUEL MOREIRA FERREIRA", "VERONICA DANIELA NUNEZ TORRES", "WESLEI FERREIRA GOIS", "YORRANA DA SILVA GONÇALVES"] }, noturno: { "1º D": ["ANA KEYLA DA COSTA ALMEIDA", "ANA LARA LOPES POLICARPO", "ANA PAULA FERREIRA DA SILVA", "CARLOS EDUARDO S. NASCIMENTO", "CARLOS ICARO SOUSA BARRETO", "CARMEN LÚCIA DO NASCIMENTO SANTOS", "CYNTHIA BIANCA RIBEIRO", "DHEIMISON LEANDRO", "DIOGO VINICIUS RIBEIRO DE SOUSA", "EDUARDO DA SILVA SILVEIRA", "FRANCISCA SILVANEIDE DA SILVA", "JOSE CAUA DOS SANTOS RODRIGUES", "JOYCE KELY MESQUITA NUNES", "LUAN RODRIGUES DE MORAIS", "LUCIANO MIGUEL CORREIA DA SILVA", "MARIA EDUARDA PEREIRA MENDES", "MARIA GABRIELA VERAS FERREIRA", "MARIA VANUSIA COELHO", "MARINA RODRIGUES DE OLIVEIRA", "NATANAEL LOBAO DA SILVA", "RAYSSA SOUSA COSTA", "ROSA MARIA DA SILVA", "SAMUEL COSTA REBOUCAS", "THAYSSA STHER FELIX REBOUÇAS", "TIFANNY DA SILVA MENDONCA", "WILCKY SANTOS PEREIRA", "YOHANA CORTEZ DE AZEVEDO", "YURI TEIXEIRA DA SILVA"], "2º D": ["ANA LUIZA LOMBARDI MESQUITA", "ARIEL LUCAS CARVOLHO", "ARIELY LETÍCIA LIMA OLIVEIRA", "DOUGLAS MARCELO FERNANDES OLIVEIRA DE MELO", "ELOIZA ZAQUEU DA SILVA SANTOS", "FAGNER LUCENA DA SILVA", "FRANCISCO DAVI RIBEIRO FREITAS", "FRANCISCO ELIVERTON ALVES DIAS", "FRANCISCO WEVERTON DOS SANTOS", "GABRIEL FREITAS DOS SANTOS", "GABRIEL HENRIQUE FREITAS DE CARVOLHO", "GUILHERME GONCALVES SILVA", "GUSTAVO SILVA OLIVEIRA", "JOAO MARCOS NOGUEIRA PEREIRA", "JOSE ROMULO FACUNDE DA SILVA", "JULYAM NAYRIS GUEDES ALBUQUERQUE", "KATIANE DE SOUZA JULIAO GOMES", "KAUA CUNHA MATIAS", "LEANDRO RAQUEL GOMES", "LUCAS HONORIO DE SOUSA", "LUZIA KETTILY DIAS LOURENCO", "MARIA SUYANE BARBOSA GOMES", "NICOLE KETLIN DE OLIVEIRA", "PEDRO YTALLO ALVES DE ARAUJO MOTA", "RAY PEREIRA ROCHA NOGUEIRA", "RAYANE BERNARDO DA SILVA SOARES", "RIAN DE LIMA NASCIMENTO", "SARA ROCHA DE SENA", "TAINARA DE SOUZA"], "3º C": ["ANA LUISA PEREIRA DOS SANTOS", "ARYANE SILVA DA GUIA", "EDUARDO DA SILVA MACEDO ARAUJO", "ERIANA KEZIA NASCIMENTO RODRIGUES", "FRANCISCA ELLEN CASTRO DOS SANTOS", "ISRAEL LUIS DE PAULA ROCHA", "IZABELE MARTINS DE SOUSA", "JOAO MARCELO CESARIO DA SILVA", "KAUA CARDOSO DE OLIVEIRA", "KAUA KEVEN AZEVEDO DA SILVA", "LUCAS DIOGO DE SOUZA", "LUIZ DAVI CRUZ DA ROCHA", "MARIA JAMILE DE SOUSA PEREIRA", "MARIA REBECA SILVA DA CRUZ", "PAULO RENAN SILVA DE ALBUQUERQUE", "SAMUEL RODRIGUES GOMES", "SARA DOS SANTOS HAYASHI", "TAYNA DE PAULA SANTANA", "VITORIA CAROLINE MORAIS DE LIMA", "WESLEY SANTANA FIRMINO"] } };
+
+    sb.auth.getSession().then(async ({data}) => {
+        if (!data.session) { window.location.href = "index.html"; return; }
+        const email = data.session.user.email;
+        if (email === "monte.eng@gmail.com" || email === "eem.dragao.mar@gmail.com") {
+            isAdmin = true;
+            infoUser.innerText = "Admin: " + email;
+            infoComp.innerText = "Modo Visualização";
+            componenteSelect.style.display = "block";
+            btnSalvar.style.display = "none";
+        } else {
+            const { data: prof } = await sb.from('professores').select('nome, componente, turmas').eq('email', email).maybeSingle();
+            if(prof) {
+                nomeProfessor = prof.nome; componenteProfessor = prof.componente; turmasProfessor = prof.turmas || [];
+                infoUser.innerText = "Professor: " + nomeProfessor;
+                infoComp.innerText = "Componente: " + componenteProfessor;
+            }
+        }
+    });
+
+    function atualizarTurmas() {
+        turma.innerHTML = "<option value=''>Selecione a turma...</option>";
+        const mod = modalidade.value;
+        if(mod && dadosEscola[mod]) {
+            Object.keys(dadosEscola[mod]).forEach(t => {
+                if(isAdmin || turmasProfessor.includes(t)) turma.innerHTML += `<option>${t}</option>`;
+            });
+        }
+    }
+
+    async function carregar() {
+        const mod = modalidade.value, tur = turma.value, dataSel = data.value;
+        if(!mod || !tur || !dataSel) return;
+
+        let comp = isAdmin ? componenteSelect.value : componenteProfessor;
+        const { data: registros } = await sb.from('frequencia').select('aluno, presente').eq('turma', tur).eq('data', dataSel).eq('area', comp);
+
+        let html = "<tr><th>Aluno</th><th>Presente</th></tr>";
+        dadosEscola[mod][tur].forEach((aluno, i) => {
+            let presente = registros?.find(r => r.aluno === aluno)?.presente;
+            let disabled = isAdmin ? "disabled" : "";
+            html += `<tr><td class="nome">${aluno}</td><td><input type="checkbox" id="p${i}" ${presente ? "checked" : ""} ${disabled}></td></tr>`;
+        });
+        tabela.innerHTML = html;
+    }
+
+    async function salvar() {
+        if(isAdmin) return;
+        const emailUser = (await sb.auth.getUser()).data.user.email;
+        const linhas = tabela.querySelectorAll("tr");
+        let dados = [];
+        linhas.forEach((linha, i) => {
+            if(i === 0) return;
+            const presente = linha.children[1].children[0].checked;
+            dados.push({ professor: emailUser, area: componenteProfessor, turma: turma.value, data: data.value, aluno: linha.children[0].innerText, presente: presente, status: presente ? "Presença" : "Falta" });
+        });
+        const { error } = await sb.from('frequencia').insert(dados);
+        alert(error ? "Erro: " + error.message : "Frequência salva!");
+    }
+
+    function voltar() { window.location.href = "painel.html"; }
+</script>
+</body>
+</html>
