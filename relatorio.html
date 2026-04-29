@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Relatório por Turma - EEMTI DRAGÃO DO MAR</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary:#004d40; --accent:#00796b; --bg:#f1f8f7; }
+        * { box-sizing:border-box; }
+        body { font-family:'Segoe UI', Arial, sans-serif; background:var(--bg); margin:0; padding:15px; }
+        .container { background:#fff; padding:20px; border-radius:16px; max-width:1100px; margin:auto; box-shadow:0 5px 15px rgba(0,0,0,.05); }
+        h2 { color:var(--primary); font-size:20px; margin:0 0 8px; text-align:center; }
+        .topo { font-size:13px; color:#555; text-align:center; margin-bottom:6px; }
+        select, button { width:100%; padding:12px; margin-top:10px; border-radius:10px; border:1px solid #ddd; font-size:15px; }
+        button { background:var(--primary); color:#fff; font-weight:600; cursor:pointer; border:none; }
+        .btn-sec { background:#ccc; color:#000; }
+        .resumo { margin-top:14px; padding:12px; border:1px solid #e7eeee; border-radius:12px; background:#f8fbfb; font-size:14px; color:#333; }
+        .table-wrap { overflow-x:auto; margin-top:16px; }
+        table { width:100%; border-collapse:collapse; min-width:760px; }
+        th { background:var(--primary); color:#fff; padding:10px; font-size:13px; position:sticky; top:0; z-index:1; }
+        td { border-bottom:1px solid #eee; padding:8px; font-size:13px; vertical-align:top; }
+        td.aluno { min-width:240px; font-weight:500; }
+        td.nota, th.nota { text-align:center; min-width:90px; }
+        td.media, th.media { text-align:center; min-width:90px; font-weight:700; }
+        .ok { color:#0b7a3d; font-weight:600; }
+        .vazio { color:#999; }
+        footer { margin-top:40px; text-align:center; font-size:11px; color:#666; padding-bottom:20px; }
+        @media (max-width:480px) {
+            .container { padding:16px; }
+            h2 { font-size:18px; }
+            select, button { font-size:14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Relatório por Turma</h2>
+    <div class="topo" id="infoUser">Relatório de notas por aluno, componente e média.</div>
+    <div class="topo" id="infoComp"></div>
+
+    <select id="modalidade" onchange="atualizarTurmas()">
+        <option value="">Modalidade...</option>
+        <option value="integral">Integral</option>
+        <option value="noturno">Noturno</option>
+    </select>
+
+    <select id="turma" onchange="carregar()"></select>
+
+    <select id="bimestre" onchange="carregar()">
+        <option value="">Todos os bimestres</option>
+        <option value="1º BIMESTRE">1º BIMESTRE</option>
+        <option value="2º BIMESTRE">2º BIMESTRE</option>
+        <option value="3º BIMESTRE">3º BIMESTRE</option>
+        <option value="4º BIMESTRE">4º BIMESTRE</option>
+    </select>
+
+    <div class="resumo" id="resumo">Selecione a modalidade e a turma para visualizar o relatório.</div>
+
+    <div class="table-wrap">
+        <table id="tabela"></table>
+    </div>
+
+    <button class="btn-sec" onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<footer>EEMTI DRAGÃO DO MAR - <span style="font-weight:bold;">©</span> By D.S.Montenegro</footer>
+
+<script>
+const sb = window.supabase.createClient(
+    'https://bdjqajzhlkdfagdfknmh.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0'
+);
+
+const dadosEscola = {
+    integral: {
+        "1º A": ["ANA BEATRIZ CABRAL DA SILVA", "ANA BEATRIZ DANTAS BERNARDO", "ANA BEATRIZ OLIVEIRA SERRA", "ANA CAROLYNA CARNEIRO SOUSA", "ANA LUIZA DE SOUSA LOURENCO", "DEBORA IOLANDA GOMES DA SILVA", "DEVIDSON RAMOS DE OLIVEIRA", "DIOGO SANTOS FERREIRA", "FERNANDO ERLANIO DE OLIVEIRA AGUIAR", "JESSICA DEBORA SILVA OLIVEIRA", "JOAO GABRIEL SOUSA RODRIGUES", "JOAO LUCAS SOUSA DA COSTA", "JORGE MIGUEL ARAUJO LOPES", "JULIA EVELLEN PAIVA DA SILVA", "KAILANY DA SILVA COSTA", "KAROLLAINY OLIVEIRA SOUSA", "KAUA ARAUJO MENDES", "LUIS GUSTAVO COSTA FERNANDES", "LUNNA DE LIMA ABREU", "MARA LIDIA FERREIRA DE FARIAS", "MARIA ALICIA CARVALHO NUNES", "MARIA CLARA DA CRUZ SILVA", "MARIA EDUARDA BERNARDO SOUZA", "MARIA ISABEL ALVES PEREIRA", "MARYA EDUARDA DOS SANTOS LOBAO", "MOISES ARCANJO FLOR FERREIRA", "RAYSSA DA SILVA RODRIGUES", "RONNALD LOPES DE OLIVEIRA", "RYAN DA SILVA COSTA", "SAMUEL SANTIAGO DE LIMA", "SAMYRA MARIA CAVALCANTE CRUZ", "THALES GABRIEL FERREIRA DE LIMA", "TIAGO TAVARES SOUZA", "YANN FERREIRA SILVA COELHO", "YASMIN SILVA COUTO"],
+        "1º B": ["ALESSANDRO DOS SANTOS RODRIGUES", "ANA ESTER DA SILVA FELIX", "ANA RUTY PEREIRA DOS SANTOS", "ARIELE DE CARVALHO GONDIM BARBOSA LEMOS", "BERNARDO BATISTA LIMA", "BRENO HENRIQUE CASTRO VALENTIM", "EDUARDO SOUSA GAMA", "ESTER VIRGINIO MARIANO", "FILIPE BRAS DE PAULA", "FRANCISCO EDILSON OLIVEIRA ANDRADE", "GABRIELA RODRIGUES DOS SANTOS", "GUSTAVO NERY TEIXEIRA DE PAULA", "IAN DE ABREU VIANA", "JOSE MARLEY MENDES DOS SANTOS", "LARA WINY SOUSA DA SILVA", "LOUISE ANDRYA FERREIRA DE SOUSA LIMA", "LUARA KALYNE DA CONCEICAO SARAIVA", "LUDMILA LOPES EVANGELISTA", "MARCOS VINICIUS ARAUJO LIMA ALVES", "MARIA BEATRIZ TELES GUEDES DE SOUSA", "MARIA EDUARDA MARTINS DANTAS", "MARIA GABRIELA DA SILVA MACEDO ARAUJO", "MARIA MANUELA FERREIRA LIMA", "MARIA VITORIA SANTOS DE LIMA", "MAYRA ALEXANDRA DOS SANTOS CARMO", "MIGUEL ANTONIO LOPES DA CUNHA", "NATHALLY ELOAR DO SANTOS HENRIQUE DA SILVA", "PAULO LUCAS VIEIRA DOS SANTOS", "PEDRO LUAN OLIVEIRA SANTOS", "PEDRO LUCAS ARAUJO BRAUNA", "RHUAN DE BRITO RODRIGUES", "RODRIGO OLIVEIRA DA SILVA", "SAULO LUKA PESSOA TABOSA"],
+        "1º C": ["ALICE FIRMINO DOS SANTOS SILVEIRA", "ANA KETHELLY AGUIAR DE SOUZA", "ANA LIVIA DA CRUZ BORGES", "ANA VITORIA SOUSA DE LIMA", "BRIAN VALENTE DOS SANTOS", "CAIO VICTOR SALES DO NASCIMENTO", "CARLOS YUDI SILVA DO NASCIMENTO", "CECILIA BORGES OLIVEIRA", "DALILA SIMONE DOS SANTOS", "ELNATAN DOS REIS RODRIGUES", "EMANUEL ARAÚJO MANSUR", "ERICK SANTOS ARAUJO", "FABIANO SANTIAGO DOS ANJOS", "FRANCISCO MANOEL DOS ANJOS DA SILVA", "GABRIEL CASTRO DE SOUSA", "HELLEN MARIA DO NASCIMENTO BERNARDO", "ISABELE ROCHA FERREIRA", "JOAO LEVI GOMES VIEIRA", "JOAO PEDRO LIMA SOARES", "JOAO VITOR DE PAULO DO NASCIMENTO", "JULIA NICOLY DE LIMA", "KEVEN GABRIEL DE SOUSA RIBEIRO", "LUCY HELEONORA DA COSTA GOMES", "LUIZ OTAVIO DA SILVA MOREIRA", "MARIA EDUARDA BEZERRA SANTOS", "MARIA EDUARDA RODRIGUES GUIMARAES", "MARIA LUIZA DA SILVA FRANCA", "MARIA VITORIA DA SILVA DO NASCIMENTO", "PEDRO GABRIEL TABOSA ROSENO", "SAMUEL DO VALE DE OLIVEIRA", "SAMUEL FREITAS ALVES", "SARAH KELLY FERREIRA SOUSA", "VITÓRIA NYCOLE LOPES DE OLIVEIRA", "YAN MIQUEIAS OLIVEIRA ALVES", "YASMIN PESSOA DA ROCHA"],
+        "2º A": ["ANA LIVIA DOS SANTOS BARATA", "ANTONIO VINICIUS ROCHA FERREIRA", "BRYANN VICTOR PEREIRA XAVIER", "CARLA SAMANTHA DE OLIVEIRA ASSARE", "CLARISSE YASMIN DA SILVA EVARISTO", "DEBORA CRISTINA ALVES DOS SANTOS", "EMANUELLE HIGINO DE SOUZA", "ENZO DOS SANTOS MONTEIRO", "ERIK DOUGLAS LIMA MARTINS", "GABRIEL SILVEIRA DE SANTANA", "GUILHERMY KAUA DA SILVA FERREIRA", "IRVINA AGATA DA SILVA FRANCA", "JENYFER RAISSA DO NASCIMENTO COSTA", "JESSIANE RIBEIRO CARNEIRO", "KAUA GUILHERME CRUZ SILVA", "KELRIANE BARROS DA COSTA", "LUIZ EDUARDO LOURENCO FIGUEIRA MACEDO", "MARCOS KAYRON ALBUQUERQUE ALVES", "MARIA IONARA FERREIRA DOS SANTOS", "MARIA SARAH LOPES DE BRITO", "MAYCON DO NASCIMENTO PEREIRA", "NARA LAUANE CARNEIRO FERREIRA", "PEDRO GABRIEL MOREIRA DA COSTA", "PEDRO HENRIQUE SOUSA MARTINS DA SILVA", "PEDRO VINÍCIOS OLIVEIRA DOS ANGELOS", "RYAN BARBOSA DE SOUSA", "SUELEN CRISTINA FARIAS LEAL", "VITORIA SANTOS DE OLIVEIRA SILVA", "WELLY DE CASTRO BULHOES", "YURI CAETANO CARVALHO"],
+        "2º B": ["ANA BRUNA FELIX ACARCIO PEREIRA", "ANA LAYS DE ALMEIDA", "ANA LIVIA VASCONCELOS LOBO ROCHA", "ANA VITORIA DE SOUZA AMARAL", "CALEBE DA SILVA SANTOS", "CECILIA SILVA OLIVEIRA", "DEBORAH CARVALHO BEZERRA", "GLENDA VITORIA GOMES DE LIVIA", "GUILHERME BARBOSA LOURENCO", "JOAO PIERRY ALVES DE OLIVEIRA", "JOEL BARBOSA EVANGELISTA", "KAROLYNNE DO NASCIMENTO V. C. ARAGÃO", "KERISSON ANDRADE AMORIM", "KEYLLON VITORIO DE SOUZA AMBE", "LUANA FONSECA MONTEIRO", "LUCAS OLIVEIRA DE SOUZA", "LUIS HENRIQUE ALVES DE OLIVEIRA", "MARCOS VINICIUS SILVANO BATISTA", "MARIA EDUARDA SANTANA RODRIGUES", "MARIA HELLEN SOUSA BARROS", "MIGUEL RONEY PEREIRA DUARTE", "MOYSHES GOMES DO NASCIMENTO", "NICOLAS DE FREITAS LOPES", "NYKOLAS PEREIRA RIOS", "PEDRO RIBEIRO HOLANDA", "RIHANHA FERREIRA DOS REIS", "RYANBERG FERREIRA BARBOSA DA SILVA", "VARVARA OZEROVA", "VICTOR GABRIEL LIMA DE SOUZA", "YAN DHARLLYS MARTINS DO NASCIMENTO"],
+        "2º C": ["AMANDA PEREIRA DA PENHA", "ANA JULIA FERNANDES DE SOUSA", "ANA LARA CORREIA LOPES", "ARTHUR CARLOS DE ALMEIDA MOTTA", "ARTHUR MONTENEGRO VENANCIO", "BRENDA PEREIRA LIMA", "ELLEN CRISTINA SILVA DOS SANTOS", "EZEQUIEL GOMES DE SENA", "FRANCISCA SAMILLY DA SILVA ARAUJO", "GABRIEL ARAUJO SILVA", "GABRIEL ONOFRE DE SOUSA MACIEL", "HELOARA MORAES VERCOSA", "JOSE ELIVELTON OLIVEIRA MAGALHAES", "KAUA EMERSON LIMA MENEZES", "KAYANNE RODRIGUES TEIXEIRA", "KENCIANE OLIVEIRA DE SOUSA", "MARIA ALICE RIBEIRO DA SILVA", "MARIA APARECIDA SILVA DE SOUZA", "MARIA EDUARDA CARIOLANO DE ARAUJO", "MARIA FERNANDA SILVA DOS SANTOS FELIX", "MARIA LAYANE MONTEIRO DE LIMA", "MIGUEL ICARO DO NASCIMENTO TEIXEIRA DA SILVA", "MIGUEL VASCONCELOS DINIZ", "MIRELLA DE PAULA NASCIMENTO", "PEDRO ADRIAN DA SILVA", "PEDRO ITALO MAIA SOUSA", "PEDRO LUCAS FEIJÓ", "REBECA DIOGO SILVA MONTENEGRO", "SAMYLLY RAYSSA DIAS ARAUJO", "SUZANNA RAFAELLE COSTA S. DO NASCIMENTO", "YURI ANDRADE DA MATA"],
+        "3º A": ["ADRYAN DE PAULA ANDRADE", "ALISSON COSTA DA SILVA", "ANA BEATRIZ FURTADO TAVARES", "ANA CAROLINE AIRES PEREIRA", "ARIANI DA GUIA DOS SANTOS", "BRUNO KENNEDY SOUSA SOARES", "CAMILY DE OLIVEIRA COSTA", "DANIELA CASTRO DE SOUZA", "DIOGO ADRIAN TAVARES DE LIMA", "EMANUELLE FERREIRA DE SOUZA", "EMANUELLY DE CASSIA PINTO QUEIROZ", "EMILY SOARES CUNHA GOMES", "FERNANDO ANTONIO MOTA DE SOUSA FILHO", "ISABELLA ALVES PEREIRA", "IZABELLE CARVOLHO SILVA", "JEFERSON LAZANO MENDES DINIZ", "JOAO NICOLAS DO NASCIMENTO", "JOÃO PEDRO SILVA DAS CHAGAS", "KAYLA VITORIA MARQUES CAMPOS", "KELTON MATEUS DE SOUSA NEVES", "LARA RAYELE BORGES GOES", "LAYS NAYRA GOMES FERREIRA", "LETICIA BARBOSA TEIXEIRA", "LIAN DE SOUZA FERREIRA", "LUIDY RAYAN PEREIRA DA SILVA", "LUIS DANIEL ALMEIDA DA SILVA", "LUIZ GUSTAVO SANTANA DA MATA", "MARIA FERNANDA SILVA SOUSA", "PEDRO ERICK BEZERRA DE LIMA", "PEDRO LUCAS DA SILVA GOMES", "PEDRO LUCAS LOPES MATIAS", "SILAS DOS SANTOS ALMEIDA", "YARLEI FERREIRA LOBAO", "YASMIM LOURENCO DE FREITAS"],
+        "3º B": ["ANA ALICE RODRIGUES DA SILVA", "ANA CLARA DOS SANTOS DE PAULA", "ANA KARINE ALBERTO SILVA", "ANA LUIZA ALVES DE OLIVEIRA", "ANDRE HENRIQUE DE SOUZA CAMPOS", "ANGELA PATRICIA OLIVEIRA FRANCA LIMA", "ANTONIA VANESSA LIMA DA MATA", "CARLOS MISAEL DA SILVA FELIX", "EDUARDA GABRIELE FERREIRA DOS SANTOS", "FLÁVIO NOGUEIRA FILHO", "FRANCISCO HUGO DA SILVA ARAUJO", "GABRIEL VITOR ABREU MORAES", "GUDSON MACEDO SANTANA", "ISAAC ASSUNCAO RODRIGUES DE MATOS", "JOAO MANOEL DIONIZIO DA SILVA", "JOAO VICTOR SOUSA DA COSTA", "JOSE ADRIEL DE SOUZA BERNARDO", "JOSE RENAN ARAUJO LIMA CASTRO", "KATHERINE LEITE BRAGA", "KERLLON PAZ DA SILVA", "LARA GABRIELLE RODRIGUES MORAIS", "LETICIA HONORATO ALVES", "LUCAS DOS SANTOS MATOKANOVIC", "MARCIO MARLEY RIBEIRO DA SILVA", "MARCUS YUAN PACHECO DE SOUZA", "MARIA CLARA CALDAS RODRIGUES", "MARIA EVELYN DA SILVA SABINO", "ROMAN DUBOVIK", "RYAN PEREIRA DE SOUZA", "RYANNA FERREIRA RODRIGUES", "SAMUEL MOREIRA FERREIRA", "VERONICA DANIELA NUNEZ TORRES", "WESLEI FERREIRA GOIS", "YORRANA DA SILVA GONÇALVES"]
+    },
+    noturno: {
+        "1º D": ["ANA KEYLA DA COSTA ALMEIDA", "ANA LARA LOPES POLICARPO", "ANA PAULA FERREIRA DA SILVA", "CARLOS EDUARDO S. NASCIMENTO", "CARLOS ICARO SOUSA BARRETO", "CARMEN LÚCIA DO NASCIMENTO SANTOS", "CYNTHIA BIANCA RIBEIRO", "DHEIMISON LEANDRO", "DIOGO VINICIUS RIBEIRO DE SOUZA", "EDUARDO DA SILVA SILVEIRA", "FRANCISCA SILVANEIDE DA SILVA", "JOSE CAUA DOS SANTOS RODRIGUES", "JOYCE KELY MESQUITA NUNES", "LUAN RODRIGUES DE MORAIS", "LUCIANO MIGUEL CORREIA DA SILVA", "MARIA EDUARDA PEREIRA MENDES", "MARIA GABRIELA VERAS FERREIRA", "MARIA VANUSIA COELHO", "MARINA RODRIGUES DE OLIVEIRA", "NATANAEL LOBAO DA SILVA", "RAYSSA SOUSA COSTA", "ROSA MARIA DA SILVA", "SAMUEL COSTA REBOUCAS", "THAYSSA STHER FELIX REBOUÇAS", "TIFANNY DA SILVA MENDONCA", "WILCKY SANTOS PEREIRA", "YOHANA CORTEZ DE AZEVEDO", "YURI TEIXEIRA DA SILVA"],
+        "2º D": ["ANA LUIZA LOMBARDI MESQUITA", "ARIEL LUCAS CARVOLHO", "ARIELY LETÍCIA LIMA OLIVEIRA", "DOUGLAS MARCELO FERNANDES OLIVEIRA DE MELO", "ELOIZA ZAQUEU DA SILVA SANTOS", "FAGNER LUCENA DA SILVA", "FRANCISCO DAVI RIBEIRO FREITAS", "FRANCISCO ELIVERTON ALVES DIAS", "FRANCISCO WEVERTON DOS SANTOS", "GABRIEL FREITAS DOS SANTOS", "GABRIEL HENRIQUE FREITAS DE CARVALHO", "GUILHERME GONCALVES SILVA", "GUSTAVO SILVA OLIVEIRA", "JOAO MARCOS NOGUEIRA PEREIRA", "JOSE ROMULO FACUNDE DA SILVA", "JULYAM NAYRIS GUEDES ALBUQUERQUE", "KATIANE DE SOUZA JULIAO GOMES", "KAUA CUNHA MATIAS", "LEANDRO RAQUEL GOMES", "LUCAS HONORIO DE SOUZA", "LUZIA KETTILY DIAS LOURENCO", "MARIA SUYANE BARBOSA GOMES", "NICOLE KETLIN DE OLIVEIRA", "PEDRO YTALLO ALVES DE ARAUJO MOTA", "RAY PEREIRA ROCHA NOGUEIRA", "RAYANE BERNARDO DA SILVA SOARES", "RIAN DE LIMA NASCIMENTO", "SARA ROCHA DE SENA", "TAINARA DE SOUZA"],
+        "3º C": ["ANA LUISA PEREIRA DOS SANTOS", "ARYANE SILVA DA GUIA", "EDUARDO DA SILVA MACEDO ARAUJO", "ERIANA KEZIA NASCIMENTO RODRIGUES", "FRANCISCA ELLEN CASTRO DOS SANTOS", "ISRAEL LUIS DE PAULA ROCHA", "IZABELE MARTINS DE SOUZA", "JOAO MARCELO CESARIO DA SILVA", "KAUA CARDOSO DE OLIVEIRA", "KAUA KEVEN AZEVEDO DA SILVA", "LUCAS DIOGO DE SOUZA", "LUIZ DAVI CRUZ DA ROCHA", "MARIA JAMILE DE SOUZA PEREIRA", "MARIA REBECA SILVA DA CRUZ", "PAULO RENAN SILVA DE ALBUQUERQUE", "SAMUEL RODRIGUES GOMES", "SARA DOS SANTOS HAYASHI", "TAYNA DE PAULA SANTANA", "VITORIA CAROLINE MORAIS DE LIMA", "WESLEY SANTANA FIRMINO"]
+    }
+};
+
+const componentesPorTurma = {
+    "1º A": ["Aperfeiçoamento em Ed. Física", "Aperfeiçoamento em Arte", "Aperfeiçoamento em Física", "Aperfeiçoamento em Matemática"],
+    "1º B": ["Aperfeiçoamento em Arte", "Aperfeiçoamento em Espanhol", "Aperfeiçoamento em Física", "Aperfeiçoamento em História"],
+    "1º C": ["Aperfeiçoamento em Ed. Física", "Aperfeiçoamento em Física", "Aperfeiçoamento em Filosofia", "Aperfeiçoamento em História"],
+    "2º A": ["Aperfeiçoamento em Matemática"],
+    "2º B": ["Aperfeiçoamento em C. Natureza"],
+    "2º C": ["Aperfeiçoamento em Linguagens e Códigos"],
+    "3º A": ["Aperfeiçoamento em Matemática"],
+    "3º B": ["Aperfeiçoamento em Matemática"],
+    "1º D": ["Aperfeiçoamento em Matemática", "Aperfeiçoamento em Espanhol"],
+    "2º D": ["Aperfeiçoamento em Matemática", "Aperfeiçoamento em Arte"],
+    "3º C": ["Aperfeiçoamento em Matemática", "Aperfeiçoamento em Física", "Aperfeiçoamento em C. Natureza"]
+};
+
+function atualizarTurmas() {
+    const mod = document.getElementById('modalidade').value;
+    const sel = document.getElementById('turma');
+    sel.innerHTML = "<option value=''>Selecione a turma...</option>";
+    if (!mod || !dadosEscola[mod]) return;
+    Object.keys(dadosEscola[mod]).forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
+}
+
+function carregar() {
+    const mod = document.getElementById('modalidade').value;
+    const tur = document.getElementById('turma').value;
+    const bim = document.getElementById('bimestre').value;
+    const resumo = document.getElementById('resumo');
+    const tabela = document.getElementById('tabela');
+    if (!mod || !tur) { resumo.innerHTML = 'Selecione a modalidade e a turma para visualizar o relatório.'; tabela.innerHTML = ''; return; }
+
+    const alunos = dadosEscola[mod]?.[tur] || [];
+    const componentesAtuais = componentesPorTurma[tur] || [];
+    if (!componentesAtuais.length) { resumo.innerHTML = `Turma <strong>${tur}</strong> sem componentes configurados.`; tabela.innerHTML = ''; return; }
+
+    const bimestreFiltro = bim ? `.eq('bimestre', '${bim}')` : '';
+    fetchNotas(mod, tur, bim, alunos, componentesAtuais, resumo, tabela);
+}
+
+async function fetchNotas(mod, tur, bim, alunos, componentesAtuais, resumo, tabela) {
+    let query = sb.from('notas_componentes').select('aluno, componente, nota, bimestre, turma').eq('turma', tur);
+    if (bim) query = query.eq('bimestre', bim);
+    const { data, error } = await query;
+    if (error) { resumo.innerHTML = 'Erro ao carregar dados.'; tabela.innerHTML = ''; return; }
+
+    const porAluno = {};
+    (data || []).forEach(r => {
+        if (!porAluno[r.aluno]) porAluno[r.aluno] = {};
+        porAluno[r.aluno][r.componente] = Number(r.nota);
+    });
+
+    let html = '<tr><th>Aluno</th>';
+    componentesAtuais.forEach(c => html += `<th class="nota">${c.replace('Aperfeiçoamento em ', '')}</th>`);
+    html += '<th class="media">Média</th></tr>';
+
+    let somaTurma = 0;
+    let qtdAlunosComMedia = 0;
+
+    alunos.forEach(aluno => {
+        const notas = componentesAtuais.map(c => {
+            const v = porAluno[aluno]?.[c];
+            return Number.isFinite(v) ? v : null;
+        });
+        const validas = notas.filter(v => v !== null);
+        const media = validas.length ? validas.reduce((a, b) => a + b, 0) / validas.length : null;
+        if (media !== null) { somaTurma += media; qtdAlunosComMedia++; }
+        html += `<tr><td class="aluno">${aluno}</td>`;
+        notas.forEach(v => html += `<td class="nota">${v === null ? '<span class="vazio">-</span>' : `<span class="ok">${v.toFixed(1)}</span>`}</td>`);
+        html += `<td class="media">${media === null ? '<span class="vazio">-</span>' : media.toFixed(1)}</td></tr>`;
+    });
+
+    tabela.innerHTML = html;
+    const mediaTurma = qtdAlunosComMedia ? (somaTurma / qtdAlunosComMedia) : null;
+    resumo.innerHTML = `Turma <strong>${tur}</strong> com <strong>${componentesAtuais.length}</strong> componente(s). Média geral dos alunos: <strong>${mediaTurma === null ? '--' : mediaTurma.toFixed(1)}</strong>.`;
+}
+
+function voltar() { window.location.href = 'painel.html'; }
+</script>
+</body>
+</html>
