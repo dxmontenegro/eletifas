@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Relatório por Turma - EEMTI DRAGÃO DO MAR</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #004d40;
+            --accent: #00796b;
+            --bg: #f1f8f7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            max-width: 1200px;
+            margin: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .05);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 20px;
+            margin: 0 0 8px;
+            text-align: center;
+        }
+
+        .topo {
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        select,
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+        }
+
+        button {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background .2s;
+        }
+
+        button:hover {
+            opacity: .9;
+        }
+
+        .btn-sec {
+            background: #ccc;
+            color: #000;
+        }
+
+        .btn-export {
+            background: #00796b;
+            color: #fff;
+        }
+
+        .resumo {
+            margin-top: 14px;
+            padding: 12px;
+            border: 1px solid #e7eeee;
+            border-radius: 12px;
+            background: #f8fbfb;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 16px;
+            max-height: 600px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th {
+            background: var(--primary);
+            color: #fff;
+            padding: 8px 5px;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid #00382e;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        th.comp-header {
+            background: var(--accent);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        th.sub-header {
+            background: #005b4f;
+            font-weight: normal;
+            font-size: 11px;
+        }
+
+        th.sub-header-media {
+            background: #004d40;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        th.aluno-header {
+            vertical-align: middle;
+            font-size: 13px;
+            z-index: 2;
+            left: 0;
+            position: sticky;
+        }
+
+        td {
+            border: 1px solid #e0e0e0;
+            padding: 7px 5px;
+            font-size: 12px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        td.aluno {
+            text-align: left;
+            min-width: 220px;
+            font-weight: 500;
+            background: #fff;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+
+        td.nota {
+            min-width: 55px;
+        }
+
+        td.media-comp {
+            min-width: 65px;
+            font-weight: 700;
+            background-color: #e0f2f1;
+            color: var(--primary);
+            border-right: 2px solid #004d40;
+        }
+
+        .ok {
+            color: #0b7a3d;
+            font-weight: 600;
+        }
+
+        .vazio {
+            color: #aaa;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            padding-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            select,
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Relatório por Turma</h2>
+
+        <div class="topo">
+            Relatório de notas por componente e média do semestre.
+        </div>
+
+        <select id="modalidade" onchange="atualizarTurmas()">
+            <option value="">Modalidade...</option>
+            <option value="integral">Integral</option>
+            <option value="noturno">Noturno</option>
+        </select>
+
+        <select id="turma" onchange="carregar()">
+            <option value="">Selecione a turma...</option>
+        </select>
+
+        <select id="semestre" onchange="carregar()">
+            <option value="1">1º Semestre (1º e 2º Bimestres)</option>
+            <option value="2">2º Semestre (3º e 4º Bimestres)</option>
+        </select>
+
+        <div class="resumo" id="resumo">
+            Selecione a modalidade e a turma para visualizar o relatório.
+        </div>
+
+        <div class="table-wrap">
+            <table id="tabela"></table>
+        </div>
+
+        <button class="btn-export" onclick="gerarPDF()">Gerar PDF</button>
+        <button class="btn-export" onclick="gerarXLS()">Gerar .xlsx</button>
+        <button class="btn-sec" onclick="voltar()">⬅ Voltar</button>
+    </div>
+
+    <footer>
+        EEMTI DRAGÃO DO MAR - <span style="font-weight:bold;">©</span> By D.S.Montenegro
+    </footer>
+
+    <script>
+        const sb = supabase.createClient(
+            'https://bdjqajzhlkdfagdfknmh.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkanFhanpobGtkZmFnZGZrbm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTA5MDcsImV4cCI6MjA4NjMyNjkwN30.hxh4adeSNM7FazeNkinwPrJEZdxsZkhtPTB5zU6eub0'
+        );
+
+        const dadosEscola = {
+            integral: {
+                "1º A": ["ANA BEATRIZ CABRAL DA SILVA","ANA BEATRIZ DANTAS BERNARDO","ANA BEATRIZ OLIVEIRA SERRA","ANA CAROLYNA CARNEIRO SOUSA","ANA JULIA DAS CHAGAS VIEIRA","ANA LUIZA DE SOUSA LOURENCO","DEBORA IOLANDA GOMES DA SILVA","DEVIDSON RAMOS DE OLIVEIRA","DIOGO SANTOS FERREIRA","ERICK SANTOS ARAUJO","FERNANDO ERLANIO DE OLIVEIRA AGUIAR","JESSICA DEBORA SILVA OLIVEIRA","JOAO GABRIEL SOUSA RODRIGUES","JOAO LUCAS SOUSA DA COSTA","JORGE MIGUEL ARAUJO LOPES","JULIA EVELLEN PAIVA DA SILVA","KAILANY DA SILVA COSTA","KAROLLAINY OLIVEIRA SOUSA","KAUA ARAUJO MENDES","LUIS GUSTAVO COSTA FERNANDES","LUIZ DAVI OLIVEIRA FIDELE DE JESUS","MARIA ALICIA CARVALHO NUNES","MARIA CLARA DA CRUZ SILVA","MARIA EDUARDA BERNARDO SOUZA","MARYA EDUARDA DOS SANTOS LOBAO","MARIA VITÓRIA RODRIGUES FREIRE","MOISES ARCANJO FLOR FERREIRA","RAYSSA DA SILVA RODRIGUES","RONNALD LOPES DE OLIVEIRA","RYAN DA SILVA COSTA","SAMUEL SANTIAGO DE LIMA","THALES GABRIEL FERREIRA DE LIMA","TIAGO TAVARES SOUZA","YANN FERREIRA SILVA COELHO","YASMIN SILVA COUTO"],
+                "1º B": ["ALESSANDRO DOS SANTOS RODRIGUES","ANA ESTER DA SILVA FELIX","ANA RUTY PEREIRA DOS SANTOS","ARIELE DE CARVALHO GONDIM BARBOSA LEMOS","BERNARDO BATISTA LIMA","BRENO HENRIQUE CASTRO VALENTIM","DANIEL PAULINO DE ARAUJO","DAVI GOMES DIAS","DIEGO WALLACE SILVA OLIVEIRA","ESTER VIRGINIO MARIANO","FILIPE BRAS DE PAULA","FRANCISCO EDILSON OLIVEIRA ANDRADE","GABRIELA RODRIGUES DOS SANTOS","GUSTAVO NERY TEIXEIRA DE PAULA","IAN DE ABREU VIANA","JOSE MARLEY MENDES DOS SANTOS","LARA WINY SOUSA DA SILVA","LUDMILA LOPES EVANGELISTA","LUIGI LIMA DE OLIVEIRA","MARCOS VINICIUS ARAUJO LIMA ALVES","MARIA BEATRIZ TELES GUEDES DE SOUSA","MARIA GABRIELA DA SILVA MACEDO ARAUJO","MARIA ISABEL ALVES PEREIRA","MARIA ISABELLE DAMASCENO CASTRO","MARIA IZADORA SILVA SOUSA","MARIA MANUELA FERREIRA LIMA","MARIA VITORIA SANTOS DE LIMA","MIGUEL ANTONIO LOPES DA CUNHA","NATHALLY ELOAR DO SANTOS HENRIQUE DA SILVA","PAULO LUCAS VIEIRA DOS SANTOS","PEDRO LUCAS ARAUJO BRAUNA","RHUAN DE BRITO RODRIGUES","RODRIGO OLIVEIRA DA SILVA","SAULO LUKA PESSOA TABOSA","THALIA SOUSA OLIVEIRA","YURI TEIXEIRA DA SILVA"],
+                "1º C": ["ALICE FIRMINO DOS SANTOS SILVEIRA","ANA KETHELLY AGUIAR DE SOUZA","ANA LIVIA DA CRUZ BORGES","ANA VITORIA SOUSA DE LIMA","BRIAN VALENTE DOS SANTOS","CAIO VICTOR SALES DO NASCIMENTO","CARLOS YUDI SILVA DO NASCIMENTO","CECILIA BORGES OLIVEIRA","DALILA SIMONE DOS SANTOS","ELNATAN DOS REIS RODRIGUES","FABIANO SANTIAGO DOS ANJOS","FRANCISCO MANOEL DOS ANJOS DA SILVA","GABRIEL CASTRO DE SOUSA","HELLEN MARIA DO NASCIMENTO BERNARDO","ISABELE ROCHA FERREIRA","JOAO LEVI GOMES VIEIRA","JOAO PEDRO LIMA SOARES","JOAO VITOR DE PAULO DO NASCIMENTO","JULIA NICOLY DE LIMA","KEVEN GABRIEL DE SOUSA RIBEIRO","LUCY ELEONORA DA COSTA GOMES","LUIZ OTAVIO DA SILVA MOREIRA","LUNNA DE LIMA ABREU","MARIA EDUARDA BEZERRA SANTOS","MARIA EDUARDA RODRIGUES GUIMARAES","MARIA LUIZA DA SILVA FRANCA","MARIA VITORIA DA SILVA DO NASCIMENTO","PEDRO GABRIEL TABOSA ROSENO","PEDRO NICOLAS TEIXEIRA ALMEIDA","SAMUEL DO VALE DE OLIVEIRA","SAMUEL FREITAS ALVES","SARAH KELLY FERREIRA SOUSA","YAN MIQUEIAS OLIVEIRA ALVES"],
+                "2º A": ["ANA LIVIA DOS SANTOS BARATA","ANTONIO VINICIUS ROCHA FERREIRA","CARLA SAMANTHA DE OLIVEIRA ASSARE","CLARISSE YASMIN DA SILVA EVARISTO","DEBORA CRISTINA ALVES DOS SANTOS","ENZO DOS SANTOS MONTEIRO","ERIK DOUGLAS LIMA MARTINS","GABRIEL SILVEIRA DE SANTANA","GIVANILDO INACIO DA SILVA FILHO","GUILHERMY KAUA DA SILVA FERREIRA","IRVINA AGATA DA SILVA FRANCA","JENYFER RAISSA DO NASCIMENTO COSTA","JESSIANE RIBEIRO CARNEIRO","KAUA GUILHERME CRUZ SILVA","KELRIANE BARROS DA COSTA","LUCIELE FLORENTINO PEREIRA DA SILVA","LUIZ EDUARDO LOURENCO FIGUEIRA MACEDO","MARCOS KAYRON ALBUQUERQUE ALVES","MARIA IONARA FERREIRA DOS SANTOS","MARIA SARAH LOPES DE BRITO","MAYCON DO NASCIMENTO PEREIRA","NARA LAUANE CARNEIRO FERREIRA","PEDRO HENRIQUE SOUSA MARTINS DA SILVA","PEDRO VINICIUS OLIVEIRA DOS ANGELOS","RYAN BARBOSA DE SOUSA","SUELEN CRISTINA FARIAS LEAL","VITORIA SANTOS DE OLIVEIRA SILVA","WELLY DE CASTRO BULHOES"],
+                "2º B": ["AMANDA JASMYNE QUEIROZ GUIA","ANA BRUNA FELIX ACARCIO PEREIRA","ANA LAYS DE ALMEIDA","ANA LIVIA VASCONCELOS LOBO ROCHA","ANA VITORIA DE SOUZA AMARAL","CALEBE DA SILVA SANTOS","CECILIA SILVA OLIVEIRA","DEBORAH CARVALHO BEZERRA","GLENDA VITORIA GOMES DE LIVIA","GUILHERME BARBOSA LOURENCO","JOAO PIERRY ALVES DE OLIVEIRA","JOEL BARBOSA EVANGELISTA","KAROLYNNE DO NASCIMENTO V. C. ARAGAO","KERISSON ANDRADE AMORIM","KEYLLON VITORIO DE SOUZA AMBE","LUANA FONSECA MONTEIRO","LUCAS OLIVEIRA DE SOUZA","MARCOS VINICIUS SILVANO BATISTA","MARIA EDUARDA SANTANA RODRIGUES","MARIA HELLEN SOUSA BARROS","MIGUEL RONEY PEREIRA DUARTE","MOYSHES GOMES DO NASCIMENTO","NYKOLAS PEREIRA RIOS","PEDRO RIBEIRO HOLANDA","RIHANHA FERREIRA DOS REIS","RYANBERG FERREIRA BARBOSA DA SILVA","VARVARA OZEROVA","VICTOR GABRIEL LIMA DE SOUZA","YAN DHARLLYS MARTINS DO NASCIMENTO"],
+                "2º C": ["AMANDA PEREIRA DA PENHA","ANA JULIA FERNANDES DE SOUSA","ANA LARA CORREIA LOPES","ARTHUR CARLOS DE ALMEIDA MOTTA","ARTHUR MONTENEGRO VENANCIO","BRENDA PEREIRA LIMA","ELLEN CRISTINA SILVA DOS SANTOS","EZEQUIEL GOMES DE SENA","FRANCISCA SAMILLY DA SILVA ARAUJO","GABRIEL ARAUJO SILVA","GABRIEL ONOFRE DE SOUSA MACIEL","JOSE ELIVELTON OLIVEIRA MAGALHAES","KAUA EMERSON LIMA MENEZES","KAYANNE RODRIGUES TEIXEIRA","KENCIANE OLIVEIRA DE SOUSA","MARIA ALICE RIBEIRO DA SILVA","MARIA APARECIDA SILVA DE SOUZA","MARIA EDUARDA CARIOLANO DE ARAUJO","MARIA FERNANDA SILVA DOS SANTOS FELIX","MARIA LAYANE MONTEIRO DE LIMA","MIGUEL ICARO DO NASCIMENTO TEIXEIRA DA SILVA","MIGUEL VASCONCELOS DINIZ","MIRELLA DE PAULA NASCIMENTO","PEDRO ADRIAN DA SILVA","PEDRO ITALO MAIA SOUSA","PEDRO LUCAS FEIJO","REBECA DIOGO SILVA MONTENEGRO","SAMYLLY RAYSSA DIAS ARAUJO","SUZANNA RAFAELLE COSTA S. DO NASCIMENTO","YURI ANDRADE DA MATA"],
+                "3º A": ["ADRYAN DE PAULA ANDRADE","ALISSON COSTA DA SILVA","ANA BEATRIZ FURTADO TAVARES","ANA CAROLINE AIRES PEREIRA","ARIANI DA GUIA DOS SANTOS","BRUNO KENNEDY SOUSA SOARES","CAMILY DE OLIVEIRA COSTA","DANIELA CASTRO DE SOUZA","DIOGO ADRIAN TAVARES DE LIMA","EMANUELLE FERREIRA DE SOUSA","EMANUELLY DE CASSIA PINTO QUEIROZ","EMILY SOARES CUNHA GOMES","ISABELLA ALVES PEREIRA","IZABELLE CARVALHO SILVA","JEFERSON LAZANO MENDES DINIZ","JOAO NICOLAS DO NASCIMENTO","JOAO PEDRO SILVA DAS CHAGAS","KAYLA VITORIA MARQUES CAMPOS","KELTON MATEUS DE SOUSA NEVES","LARA RAYELE BORGES GOES","LAYS NAYRA GOMES FERREIRA","LETICIA BARBOSA TEIXEIRA","LIAM DE SOUSA FERREIRA","LUIDY RAYAN PEREIRA DA SILVA","LUIS DANIEL ALMEIDA DA SILVA","LUIZ GUSTAVO SANTANA DA MATA","MARIA FERNANDA SILVA SOUSA","PEDRO ERICK BEZERRA DE LIMA","PEDRO LUCAS LOPES MATIAS","SILAS DOS SANTOS ALMEIDA","YARLEI FERREIRA LOBAO","YASMIM LOURENCO DE FREITAS"],
+                "3º B": ["ANA ALICE RODRIGUES DA SILVA","ANA CLARA DOS SANTOS DE PAULA","ANA KARINE ALBERTO SILVA","ANA LUIZA ALVES DE OLIVEIRA","ANDRE HENRIQUE DE SOUZA CAMPOS","ANGELA PATRICIA OLIVEIRA FRANCA LIMA","ANTONIA VANESSA LIMA DA MATA","CARLOS MISAEL DA SILVA FELIX","FLAVIO NOGUEIRA FILHO","FRANCISCO HUGO DA SILVA ARAUJO","GABRIEL VITOR ABREU MORAES","GUDSON MACEDO SANTANA","ISAAC ASSUNCAO RODRIGUES DE MATOS","JOAO MANOEL DIONIZIO DA SILVA","JOAO VICTOR SOUSA DA COSTA","JOSE ADRIEL DE SOUSA BERNARDO","JOSE RENAN ARAUJO LIMA CASTRO","KATHERINE LEITE BRAGA","KERLLON PAZ DA SILVA","LARA GABRIELLE RODRIGUES MORAIS","LETICIA HONORATO ALVES","LUCAS DOS SANTOS MATOKANOVIC","MARCIO MARLEY RIBEIRO DA SILVA","MARCUS YUAN PACHECO DE SOUSA","MARIA CLARA CALDAS RODRIGUES","MARIA EVELYN DA SILVA SABINO","ROMAN DUBOVIK","RYAN PEREIRA DE SOUSA","RYANNA FERREIRA RODRIGUES","SAMUEL MOREIRA FERREIRA","VERONICA DANIELA NUNEZ TORRES","WESLEI FERREIRA GOIS","YORRANA DA SILVA GONCALVES"]
+            },
+
+            noturno: {
+                "1º D": ["ANA GABRIELLY CRUZ PEREIRA","ANA LARA LOPES POLICARPO","ANA PAULA FERREIRA DA SILVA","CARLOS EDUARDO S. NASCIMENTO","CARLOS ICARO SOUSA BARRETO","CARMEN LUCIA DO NASCIMENTO SANTOS","CYNTHIA BIANCA RIBEIRO","DHEIMISON LEANDRO SILVA DE LIMA","FRANCISCA SILVANEIDE DA SILVA","GUSTAVO DE SOUSA RODRIGUES","JOAO GABRIEL DE CASTRO RIBEIRO","JOSE CAUA DOS SANTOS RODRIGUES","JOVANE HOLANDO GOMES","LAIANE DANIELE SILVA DE LIMA","LUAN RODRIGUES DE MORAIS","LUCIANO MIGUEL CORREIA DA SILVA","MARIA CLARA DA COSTA DOS SANTOS","MARIA EDUARDA PEREIRA MENDES","MARIA VANUSIA COELHO","MARINA RODRIGUES DE OLIVEIRA","NATANAEL LOBAO DA SILVA","RAYSSA SOUSA COSTA","ROSA MARIA DA SILVA","SAMUEL COSTA REBOUCAS","SAMYRA MARIA CAVALCANTE CRUZ","THAYSSA STHER FELIX REBOUCAS","TIFANNY DA SILVA MENDONCA","YASMIM PERUGI MENDONCA FRANCA","WILCKY SANTOS PEREIRA","YOHANA CORTEZ DE AZEVEDO"],
+                "2º D": ["ANA LUIZA LOMBARDI MESQUITA","ARIEL LUCAS CARVALHO","ARIELY LETICIA LIMA OLIVEIRA","DOUGLAS MARCELO FERNANDES OLIVEIRA DE MELO","EMILY AZEVEDO DOS SANTOS","FRANCISCO DAVI RIBEIRO FREITAS","FRANCISCO WEVERTON DOS SANTOS","GABRIEL FREITAS DOS SANTOS","GABRIEL HENRIQUE FREITAS DE CARVALHO","GUILHERME GONCALVES SILVA","GUSTAVO SILVA OLIVEIRA","JOSE ROMULO FACUNDE DA SILVA","JULYAM NAYRIS GUEDES ALBUQUERQUE","KAUA CUNHA MATIAS","LEANDRO RAQUEL GOMES","LUANA FONSECA MONTEIRO","LUCAS HONORIO DE SOUSA","LUZIA KETTILY DIAS LOURENCO","MARIA SUYANE GOMES DA SILVA","NICOLE KETLIN DE OLIVEIRA","PEDRO GABRIEL MOREIRA DA COSTA","PEDRO YTALLO ALVES DE ARAUJO MOTA","RAY PEREIRA ROCHA NOGUEIRA","RAYANE BERNARDO DA SILVA SOARES","RIAN DE LIMA NASCIMENTO","SARA ROCHA DE SENA","TAINARA DE SOUZA"],
+                "3º C": ["ADALBERTO","ANA LUISA PEREIRA DOS SANTOS","ARYANE SILVA DA GUIA","DANILO DOS SANTOS PEREIRA","EDUARDO DA SILVA MACEDO ARAUJO","ERIANA KEZIA NASCIMENTO RODRIGUES","FERNANDO ANTONIO MOTA DE SOUSA FILHO","FRANCISCA ELLEN CASTRO DOS SANTOS","GABRIEL VALENTIM BARROSO","ISRAEL LUIS DE PAULA ROCHA","IZABELE MARTINS DE SOUSA","JACO JOANICIO RAMOS DE SOUZA","KAUA CARDOSO DE OLIVEIRA","LUCAS DIOGO DE SOUZA","LUIZ DAVI CRUZ DA ROCHA","MARIA JAMILE DE SOUSA PEREIRA","MARIA REBECA SILVA DA CRUZ","MARIA TEREZA FELIX RODRIGUES","PAULO RENAN SILVA DE ALBUQUERQUE","PEDRO LUCAS DA SILVA GOMES","SAMUEL RODRIGUES GOMES","SARA DOS SANTOS HAYASHI","VICTORIA SANCHEZ DA SILVA ALVES","VITORIA CAROLINE MORAIS DE LIMA","WESLEY SANTANA FIRMINO"]
+            }
+        };
+
+        const componentesPorTurma = {
+            "1º A": [
+                "Aperfeiçoamento em Ed. Física",
+                "Aperfeiçoamento em Arte",
+                "Aperfeiçoamento em Física",
+                "Aperfeiçoamento em Matemática"
+            ],
+            "1º B": [
+                "Aperfeiçoamento em Arte",
+                "Aperfeiçoamento em Espanhol",
+                "Aperfeiçoamento em Física",
+                "Aperfeiçoamento em História"
+            ],
+            "1º C": [
+                "Aperfeiçoamento em Ed. Física",
+                "Aperfeiçoamento em Física",
+                "Aperfeiçoamento em Filosofia",
+                "Aperfeiçoamento em História"
+            ],
+            "2º A": [
+                "Aperfeiçoamento em Matemática"
+            ],
+            "2º B": [
+                "Aperfeiçoamento em C. Natureza"
+            ],
+            "2º C": [
+                "Aperfeiçoamento em Linguagens e Códigos"
+            ],
+            "3º A": [
+                "Aperfeiçoamento em Matemática",
+                "Aperfeiçoamento em Língua Portuguesa"
+            ],
+            "3º B": [
+                "Aperfeiçoamento em Matemática",
+                "Aperfeiçoamento em Língua Portuguesa"
+            ],
+            "1º D": [
+                "Aperfeiçoamento em Matemática",
+                "Aperfeiçoamento em Espanhol"
+            ],
+            "2º D": [
+                "Aperfeiçoamento em Matemática",
+                "Aperfeiçoamento em Arte"
+            ],
+            "3º C": [
+                "Aperfeiçoamento em Matemática",
+                "Aperfeiçoamento em Física",
+                "Aperfeiçoamento em C. Natureza"
+            ]
+        };
+
+        function normalizarTexto(txt) {
+            if (txt === null || txt === undefined) return '';
+
+            return String(txt)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .replace(/[º°ª]/g, '')
+                .replace(/[^A-Z0-9]/g, '');
+        }
+
+        function normalizarComponente(txt) {
+            const chave = normalizarTexto(txt);
+
+            const aliases = {
+                APERFEICOAMENTOEMCNATUREZA: 'APERFEICOAMENTOEMCIENCIASDANATUREZA',
+                APERFEICOAMENTOEMCIENCIASDANATUREZA: 'APERFEICOAMENTOEMCIENCIASDANATUREZA',
+
+                APERFEICOAMENTOEMEDFISICA: 'APERFEICOAMENTOEMEDUCACAOFISICA',
+                APERFEICOAMENTOEMEDUCACAOFISICA: 'APERFEICOAMENTOEMEDUCACAOFISICA',
+
+                APERFEICOAMENTOEMLINGUAGENSCODIGOS: 'APERFEICOAMENTOEMLINGUAGENSECODIGOS',
+                APERFEICOAMENTOEMLINGUAGENSECODIGOS: 'APERFEICOAMENTOEMLINGUAGENSECODIGOS',
+
+                APERFEICOAMENTOEMLPE: 'APERFEICOAMENTOEMLINGUAPORTUGUESA',
+                APERFEICOAMENTOEMLP: 'APERFEICOAMENTOEMLINGUAPORTUGUESA',
+                APERFEICOAMENTOEMPORTUGUES: 'APERFEICOAMENTOEMLINGUAPORTUGUESA',
+                APERFEICOAMENTOEMLINGUAPORTUGUESA: 'APERFEICOAMENTOEMLINGUAPORTUGUESA'
+            };
+
+            return aliases[chave] || chave;
+        }
+
+        function extrairNumeroBimestre(valor) {
+            if (valor === null || valor === undefined) return null;
+
+            const texto = String(valor).trim();
+            const encontrado = texto.match(/[1-4]/);
+
+            return encontrado ? Number(encontrado[0]) : null;
+        }
+
+        function atualizarTurmas() {
+            const modalidade = document.getElementById('modalidade').value;
+            const selectTurma = document.getElementById('turma');
+
+            selectTurma.innerHTML = '<option value="">Selecione a turma...</option>';
+
+            if (!modalidade || !dadosEscola[modalidade]) {
+                carregar();
+                return;
+            }
+
+            Object.keys(dadosEscola[modalidade]).forEach(turma => {
+                const option = document.createElement('option');
+                option.value = turma;
+                option.textContent = turma;
+                selectTurma.appendChild(option);
+            });
+
+            carregar();
+        }
+
+        function carregar() {
+            const modalidade = document.getElementById('modalidade').value;
+            const turma = document.getElementById('turma').value;
+            const semestre = document.getElementById('semestre').value;
+
+            const resumo = document.getElementById('resumo');
+            const tabela = document.getElementById('tabela');
+
+            if (!modalidade || !turma) {
+                resumo.innerHTML = 'Selecione a modalidade e a turma para visualizar o relatório.';
+                tabela.innerHTML = '';
+                return;
+            }
+
+            const alunos = dadosEscola[modalidade]?.[turma] || [];
+            const componentesAtuais = componentesPorTurma[turma] || [];
+
+            if (!alunos.length) {
+                resumo.innerHTML = `A turma <strong>${turma}</strong> não possui alunos configurados.`;
+                tabela.innerHTML = '';
+                return;
+            }
+
+            if (!componentesAtuais.length) {
+                resumo.innerHTML = `Turma <strong>${turma}</strong> sem componentes configurados.`;
+                tabela.innerHTML = '';
+                return;
+            }
+
+            fetchNotasSemestre(
+                turma,
+                semestre,
+                alunos,
+                componentesAtuais,
+                resumo,
+                tabela
+            );
+        }
+
+        async function buscarTodasNotas() {
+            const tamanhoPagina = 1000;
+            let inicio = 0;
+            let todosRegistros = [];
+            let continuar = true;
+
+            while (continuar) {
+                const { data, error } = await sb
+                    .from('notas_componentes')
+                    .select('id, turma, aluno, componente, bimestre, nota')
+                    .order('id', { ascending: true })
+                    .range(inicio, inicio + tamanhoPagina - 1);
+
+                if (error) throw error;
+
+                const registros = data || [];
+
+                todosRegistros = todosRegistros.concat(registros);
+
+                if (registros.length < tamanhoPagina) {
+                    continuar = false;
+                } else {
+                    inicio += tamanhoPagina;
+                }
+            }
+
+            return todosRegistros;
+        }
+
+        function filtrarRegistrosDaTurma(registros, turmaSelecionada) {
+            const chaveTurma = normalizarTexto(turmaSelecionada);
+
+            return registros.filter(registro => {
+                return normalizarTexto(registro.turma) === chaveTurma;
+            });
+        }
+
+        async function fetchNotasSemestre(
+            turma,
+            semestre,
+            alunos,
+            componentesAtuais,
+            resumo,
+            tabela
+        ) {
+            resumo.innerHTML = 'Carregando dados...';
+            tabela.innerHTML = '';
+
+            const rotulosBim = semestre === '1'
+                ? ['1º BIM', '2º BIM']
+                : ['3º BIM', '4º BIM'];
+
+            const bimestresPermitidos = semestre === '1'
+                ? [1, 2]
+                : [3, 4];
+
+            try {
+                const todosRegistros = await buscarTodasNotas();
+
+                const registrosTurma = filtrarRegistrosDaTurma(
+                    todosRegistros,
+                    turma
+                );
+
+                console.log(`Total geral retornado: ${todosRegistros.length}`);
+                console.log(`Registros da turma ${turma}: ${registrosTurma.length}`);
+
+                const alunosConfigurados = new Set(
+                    alunos.map(aluno => normalizarTexto(aluno))
+                );
+
+                const componentesConfigurados = new Set(
+                    componentesAtuais.map(componente =>
+                        normalizarComponente(componente)
+                    )
+                );
+
+                const mapaNotas = {};
+                const registrosIncompativeis = [];
+                const registrosDuplicados = [];
+
+                registrosTurma.forEach(registro => {
+                    if (!registro.aluno || !registro.componente) {
+                        registrosIncompativeis.push({
+                            motivo: 'Registro sem aluno ou componente',
+                            ...registro
+                        });
+                        return;
+                    }
+
+                    const alunoChave = normalizarTexto(registro.aluno);
+                    const componenteChave = normalizarComponente(registro.componente);
+                    const numeroBimestre = extrairNumeroBimestre(registro.bimestre);
+
+                    if (!alunosConfigurados.has(alunoChave)) {
+                        registrosIncompativeis.push({
+                            motivo: 'Aluno existe no banco, mas não na lista da turma',
+                            alunoBanco: registro.aluno,
+                            componenteBanco: registro.componente,
+                            turmaBanco: registro.turma,
+                            bimestreBanco: registro.bimestre,
+                            notaBanco: registro.nota
+                        });
+                        return;
+                    }
+
+                    if (!componentesConfigurados.has(componenteChave)) {
+                        registrosIncompativeis.push({
+                            motivo: 'Componente existe no banco, mas não está configurado para a turma',
+                            alunoBanco: registro.aluno,
+                            componenteBanco: registro.componente,
+                            turmaBanco: registro.turma,
+                            bimestreBanco: registro.bimestre,
+                            notaBanco: registro.nota
+                        });
+                        return;
+                    }
+
+                    if (!bimestresPermitidos.includes(numeroBimestre)) {
+                        return;
+                    }
+
+                    if (
+                        registro.nota === null ||
+                        registro.nota === undefined ||
+                        String(registro.nota).trim() === ''
+                    ) {
+                        return;
+                    }
+
+                    const notaNumerica = Number(
+                        String(registro.nota)
+                            .replace(',', '.')
+                            .trim()
+                    );
+
+                    if (!Number.isFinite(notaNumerica)) {
+                        registrosIncompativeis.push({
+                            motivo: 'Nota inválida ou não numérica',
+                            alunoBanco: registro.aluno,
+                            componenteBanco: registro.componente,
+                            turmaBanco: registro.turma,
+                            bimestreBanco: registro.bimestre,
+                            notaBanco: registro.nota
+                        });
+                        return;
+                    }
+
+                    let slotBimestre = null;
+
+                    if (semestre === '1') {
+                        if (numeroBimestre === 1) slotBimestre = 0;
+                        if (numeroBimestre === 2) slotBimestre = 1;
+                    } else {
+                        if (numeroBimestre === 3) slotBimestre = 0;
+                        if (numeroBimestre === 4) slotBimestre = 1;
+                    }
+
+                    if (slotBimestre === null) return;
+
+                    const chaveNota = `${alunoChave}_${componenteChave}_${slotBimestre}`;
+
+                    if (mapaNotas[chaveNota] !== undefined) {
+                        registrosDuplicados.push({
+                            motivo: 'Registro duplicado para aluno/componente/bimestre',
+                            alunoBanco: registro.aluno,
+                            componenteBanco: registro.componente,
+                            turmaBanco: registro.turma,
+                            bimestreBanco: registro.bimestre,
+                            notaAnterior: mapaNotas[chaveNota],
+                            notaAtual: notaNumerica,
+                            idRegistroAtual: registro.id
+                        });
+                    }
+
+                    mapaNotas[chaveNota] = notaNumerica;
+                });
+
+                console.log(`Notas associadas à tabela: ${Object.keys(mapaNotas).length}`);
+
+                if (registrosIncompativeis.length) {
+                    console.warn(
+                        `${registrosIncompativeis.length} registro(s) não foram exibidos por incompatibilidade.`
+                    );
+
+                    console.table(registrosIncompativeis);
+                }
+
+                if (registrosDuplicados.length) {
+                    console.warn(
+                        `${registrosDuplicados.length} registro(s) duplicado(s) foram encontrados.`
+                    );
+
+                    console.table(registrosDuplicados);
+                }
+
+                let cabecalhoLinha1 = `
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="aluno-header">Aluno</th>
+                `;
+
+                let cabecalhoLinha2 = '<tr>';
+
+                componentesAtuais.forEach(componente => {
+                    const nomeCurto = componente.replace(
+                        'Aperfeiçoamento em ',
+                        ''
+                    );
+
+                    cabecalhoLinha1 += `
+                        <th colspan="3" class="comp-header">${nomeCurto}</th>
+                    `;
+
+                    cabecalhoLinha2 += `
+                        <th class="sub-header">${rotulosBim[0]}</th>
+                        <th class="sub-header">${rotulosBim[1]}</th>
+                        <th class="sub-header-media">MÉDIA</th>
+                    `;
+                });
+
+                cabecalhoLinha1 += '</tr>';
+                cabecalhoLinha2 += '</tr></thead><tbody>';
+
+                let html = cabecalhoLinha1 + cabecalhoLinha2;
+
+                let quantidadeNotasExibidas = 0;
+                let quantidadeLacunas = 0;
+
+                alunos.forEach(aluno => {
+                    const alunoChave = normalizarTexto(aluno);
+
+                    html += `<tr><td class="aluno">${aluno}</td>`;
+
+                    componentesAtuais.forEach(componente => {
+                        const componenteChave = normalizarComponente(componente);
+
+                        const nota1 = mapaNotas[`${alunoChave}_${componenteChave}_0`];
+                        const nota2 = mapaNotas[`${alunoChave}_${componenteChave}_1`];
+
+                        const v1 = Number.isFinite(nota1) ? nota1 : null;
+                        const v2 = Number.isFinite(nota2) ? nota2 : null;
+
+                        if (v1 !== null) {
+                            quantidadeNotasExibidas++;
+                        } else {
+                            quantidadeLacunas++;
+                        }
+
+                        if (v2 !== null) {
+                            quantidadeNotasExibidas++;
+                        } else {
+                            quantidadeLacunas++;
+                        }
+
+                        const valoresValidos = [v1, v2].filter(
+                            valor => valor !== null
+                        );
+
+                        const media = valoresValidos.length
+                            ? valoresValidos.reduce(
+                                (total, valor) => total + valor,
+                                0
+                            ) / valoresValidos.length
+                            : null;
+
+                        html += `
+                            <td class="nota">
+                                ${
+                                    v1 === null
+                                        ? '<span class="vazio">-</span>'
+                                        : `<span class="ok">${v1.toFixed(1)}</span>`
+                                }
+                            </td>
+                        `;
+
+                        html += `
+                            <td class="nota">
+                                ${
+                                    v2 === null
+                                        ? '<span class="vazio">-</span>'
+                                        : `<span class="ok">${v2.toFixed(1)}</span>`
+                                }
+                            </td>
+                        `;
+
+                        html += `
+                            <td class="media-comp">
+                                ${
+                                    media === null
+                                        ? '<span class="vazio">-</span>'
+                                        : media.toFixed(1)
+                                }
+                            </td>
+                        `;
+                    });
+
+                    html += '</tr>';
+                });
+
+                html += '</tbody>';
+                tabela.innerHTML = html;
+
+                resumo.innerHTML = `
+                    Turma <strong>${turma}</strong> |
+                    <strong>${semestre}º Semestre</strong> |
+                    <strong>${componentesAtuais.length}</strong> componente(s) |
+                    <strong>${quantidadeNotasExibidas}</strong> nota(s) exibida(s) |
+                    <strong>${quantidadeLacunas}</strong> lacuna(s)
+                    ${
+                        registrosIncompativeis.length
+                            ? `| <strong>${registrosIncompativeis.length}</strong> registro(s) para conferir no Console.`
+                            : ''
+                    }
+                `;
+            } catch (erro) {
+                console.error('Erro detalhado ao buscar notas:', erro);
+
+                resumo.innerHTML = `
+                    Erro ao carregar dados do banco:
+                    <strong>${erro.message || 'verifique o Console do navegador'}</strong>.
+                `;
+
+                tabela.innerHTML = '';
+            }
+        }
+
+        function getTabelaMatriz() {
+            const tabela = document.getElementById('tabela');
+            const linhas = [...tabela.querySelectorAll('tr')];
+
+            return linhas.map(linha =>
+                [...linha.querySelectorAll('th, td')].map(celula =>
+                    celula.innerText.replace(/\n/g, ' ').trim()
+                )
+            );
+        }
+
+        function gerarPDF() {
+            const matriz = getTabelaMatriz();
+
+            if (matriz.length < 3) {
+                alert('Selecione uma turma e aguarde a tabela carregar.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            const modalidade = document.getElementById('modalidade').value || '';
+            const turma = document.getElementById('turma').value || '';
+            const semestre = document.getElementById('semestre').value || '1';
+
+            doc.setFontSize(14);
+            doc.text('Relatório por Turma - EEMTI DRAGÃO DO MAR', 14, 13);
+
+            doc.setFontSize(10);
+            doc.text(
+                `Modalidade: ${modalidade.toUpperCase()} | Turma: ${turma} | Semestre: ${semestre}º Semestre`,
+                14,
+                19
+            );
+
+            const head = [matriz[0], matriz[1]];
+            const body = matriz.slice(2);
+
+            doc.autoTable({
+                head,
+                body,
+                startY: 24,
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 1.5,
+                    halign: 'center'
+                },
+                headStyles: {
+                    fillColor: [0, 77, 64],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: {
+                        halign: 'left',
+                        cellWidth: 'auto'
+                    }
+                },
+                theme: 'grid',
+                margin: {
+                    left: 8,
+                    right: 8
+                }
+            });
+
+            doc.save(`relatorio_${turma || 'turma'}_${semestre}Semestre.pdf`);
+        }
+
+        function gerarXLS() {
+            const tabela = document.getElementById('tabela');
+            const turma = document.getElementById('turma').value || 'turma';
+            const semestre = document.getElementById('semestre').value || '1';
+
+            if (!tabela.querySelector('tr')) {
+                alert('Selecione uma turma e aguarde a tabela carregar.');
+                return;
+            }
+
+            const workbook = XLSX.utils.table_to_book(tabela, {
+                sheet: 'Relatorio'
+            });
+
+            XLSX.writeFile(
+                workbook,
+                `relatorio_${turma}_${semestre}Semestre.xlsx`
+            );
+        }
+
+        function voltar() {
+            window.location.href = 'painel.html';
+        }
+    </script>
+</body>
+</html>
